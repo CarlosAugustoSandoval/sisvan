@@ -15,11 +15,13 @@ Auth::routes();
 Route::get('/home', 'HomeController@index')->name('home');
 Route::get('/', 'HomeController@index')->name("home");
 
-Route::get('/pacientes/panel', 'PacientesController@panel')->name("pacientes");
-Route::post('/pacientes/obtener-pacientes', 'PacientesController@obtenerPacientes');
-Route::post('/pacientes/guardar-pacientes', 'PacientesController@guardarPacientes');
-Route::get('/pacientes/complementos-pacientes', 'PacientesController@complementosPacientes');
-Route::post('/pacientes/procesaedad-pacientes', 'PacientesController@procesaEdadPacientes');
+Route::group(['middleware' => 'auth'], function () {
+    Route::get('/pacientes/panel', 'PacientesController@panel')->name("pacientes");
+    Route::post('/pacientes/obtener-pacientes', 'PacientesController@obtenerPacientes');
+    Route::post('/pacientes/guardar-pacientes', 'PacientesController@guardarPacientes');
+    Route::get('/pacientes/complementos-pacientes', 'PacientesController@complementosPacientes');
+    Route::post('/pacientes/procesaedad-pacientes', 'PacientesController@procesaEdadPacientes');
 
-Route::get('/usuarios/panel', 'UsuariosController@panel')->name("usuarios");
-Route::get('/upgds/panel', 'UpgdsController@panel')->name("upgds");
+    Route::get('/usuarios/panel', 'UsuariosController@panel')->name("usuarios");
+    Route::get('/upgds/panel', 'UpgdsController@panel')->name("upgds");
+});

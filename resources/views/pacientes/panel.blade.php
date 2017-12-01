@@ -104,7 +104,9 @@
                 subgrupoDisabled:'',
                 titleSubgrupoEtnico:'',
                 maxDateBorn:'',
-                consulta:{}
+                consulta:{},
+                variable4:'',
+                variable5:''
             },
             watch: {
                 'paciente.grupo_etnico_id'(val) {
@@ -138,30 +140,32 @@
                         app.subgrupoDisabled = true;
                     }
                 },
-                'paciente.fecha_nacimiento'(val) {
-                    if(val){
-                        var app = this;
-                        app.$http.post('/pacientes/procesaedad-pacientes',{id:app.paciente.id, fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
-                            if(response.body.estado=='ok'){
-                                $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
-                                    app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-                                    if(value.tipo_input=='select'){
-                                        var objectSelect = [];
-                                        $.each( value.valor.split(","), function( key, valuex ) {
-                                            objectSelect.push({valor:valuex});
-                                        });
-                                        value.valor = objectSelect;
-                                    }
-                                });
-                                app.paciente.rango_edad = response.body.paciente.rango_edad;
-                            }
-                            console.log('edad');
-                            console.log(response.body.edad);
-                        },(error)=>{
-                            toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
-                        });
-                    }
-                },
+//                'paciente.fecha_nacimiento'(val) {
+//                    if(val){
+//                        var app = this;
+//                        app.$http.post('/pacientes/procesaedad-pacientes',{id:app.paciente.id, fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
+//                            if(response.body.estado=='ok'){
+//                                $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
+//                                    app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
+//                                    if(value.tipo_input=='select'){
+//                                        var objectSelect = [];
+//                                        console.log('el value de paciente');
+//                                        console.log(value);
+//                                        $.each( value.valor.split(","), function( key, valuex ) {
+//                                            objectSelect.push({valor:valuex});
+//                                        });
+//                                        value.valor = objectSelect;
+//                                    }
+//                                });
+//                                app.paciente.rango_edad = response.body.paciente.rango_edad;
+//                            }
+//                            console.log('edad');
+//                            console.log(response.body.edad);
+//                        },(error)=>{
+//                            toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
+//                        });
+//                    }
+//                },
             },
             filters:{
                 dateShort:function(val){
@@ -176,7 +180,7 @@
             methods: {
                 cambiaResultado(e,index){
                     console.log(e);
-                    this.paciente.rango_edad.variable[index].valor =10;
+                        this.paciente.rango_edad.variable[index].valor =10;
                 },
                 guardarPaciente(response){
                     if(response.tipo == 'update'){
@@ -222,27 +226,63 @@
                     }
                     this.subgruposEtnico=[];
                     this.titleSubgrupoEtnico='';
+                    this.variables=['','','','','','','',''];
+                    this.variable4='';
+                    this.variable5='';
+                },
+                cambiox(index){
+                    if(index==4){
+                        this.variable4=index;
+                    }else if(index==5){
+                        this.variable5=index;
+                    }
                 },
                 editarPaciente(paciente, index) {
                     var app = this;
-                    app.paciente = JSON.parse(JSON.stringify(paciente));
-                    var itemsPrograma = [];
-                    $.each( app.paciente.programa_social, function( key, value ) {
-                        itemsPrograma.push(value.id);
-                    });
-                    $.each( app.paciente.rango_edad.variable, function( key, value ) {
-                        app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-                        if(value.tipo_input=='select'){
-                            var objectSelect = [];
-                            $.each( value.valor.split(","), function( key, valuex ) {
-                                objectSelect.push({valor:valuex});
+                    app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente.id, fecha_nacimiento:paciente.fecha_nacimiento}).then((response)=>{
+                        if(response.body.estado=='ok'){
+                            $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
+                                app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
+                                if(value.tipo_input=='select'){
+                                    var objectSelect = [];
+                                    $.each( value.valor.split(","), function( key, valuex ) {
+                                        objectSelect.push({valor:valuex});
+                                    });
+                                    value.valor = objectSelect;
+                                    console.log('el objectSelect');
+                                    console.log(objectSelect);
+                                }
                             });
-                            value.valor = objectSelect;
+                            app.paciente = JSON.parse(JSON.stringify(paciente));
+                            var itemsPrograma = [];
+                            $.each( app.paciente.programa_social, function( key, value ) {
+                                itemsPrograma.push(value.id);
+                            });
+                            app.paciente.rango_edad = response.body.paciente.rango_edad;
+                            app.paciente.programa_social = itemsPrograma;
+                            app.paciente.estado = this.paciente.estado=='Activo'?1:0;
+                            app.indexRegistro = index;
                         }
+                        console.log('edad');
+                        console.log(response.body.edad);
+                    },(error)=>{
+                        toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
                     });
-                    app.paciente.programa_social = itemsPrograma;
-                    app.paciente.estado = this.paciente.estado=='Activo'?1:0;
-                    app.indexRegistro = index;
+
+//                    app.consulta.detalle_consulta = [];
+//                    $.each( app.paciente.rango_edad.variable, function( key, value ) {
+//                        app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
+//                        console.log('detalle rango');
+//                        console.log(app.consulta.detalle_consulta);
+//                        if(value.tipo_input=='select'){
+//                            var objectSelect = [];
+//                            $.each( value.valor.split(","), function( key, valuex ) {
+//                                objectSelect.push({valor:valuex});
+//                            });
+//                            value.valor = objectSelect;
+//                        }
+//                    });
+
                 },
                 complementosPaciente() {
                     this.$http.get('/pacientes/complementos-pacientes').then(

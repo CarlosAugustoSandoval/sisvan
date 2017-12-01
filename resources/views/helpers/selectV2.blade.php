@@ -79,6 +79,7 @@
             emitir(e,target){
                 var app = this;
                 app.$emit("change:updatevalue", app.updatevalueObject=="object"?e.params.data.entidad:app.updatevalueObject=="array"?$(target).val()!=null?$(target).val():[]:e.params.data.id);
+                app.$emit("change2");
             },
             lanzarSelectFilter(){
                 var app = this;
