@@ -106,9 +106,16 @@
                 maxDateBorn:'',
                 consulta:{},
                 variable4:'',
-                variable5:''
+                variable5:'',
+                pacienteConsulta:{}
             },
             watch: {
+                'paciente'(val){
+                    this.pacienteConsulta.paciente  = val;
+                },
+                'consulta'(val){
+                    this.pacienteConsulta.consulta  = val;
+                },
                 'paciente.grupo_etnico_id'(val) {
                     if(val){
                         var app = this;
@@ -191,6 +198,15 @@
                     }
                     $('#modal-registro-paciente').modal('hide');
                 },
+                guardarConsulta(response){
+                    if(response.tipo == 'update'){
+                        this.pacientes.splice(app.indexRegistro,1);
+                        this.pacientes.splice(app.indexRegistro,0,response.paciente);
+                    }else{
+                        this.pacientes.push(response.paciente);
+                    }
+                    $('#modal-registro-consulta').modal('hide');
+                },
                 formReset() {
                     this.paciente = {
                         id:'',
@@ -222,13 +238,17 @@
                     };
                     this.consulta={
                         id:'',
+                        servicio_upgd_id:'',
                         detalle_consulta:[]
                     }
                     this.subgruposEtnico=[];
                     this.titleSubgrupoEtnico='';
-                    this.variables=['','','','','','','',''];
                     this.variable4='';
                     this.variable5='';
+                    this.pacienteConsulta = {
+                        paciente:this.paciente,
+                        consulta:this.consulta
+                    }
                 },
                 cambiox(index){
                     if(index==4){

@@ -18,6 +18,26 @@
                         </div>
                         <div class="tab-pane fade" id="tab2_2">
                             <div class="row">
+                                <div class="col-sm-12">
+                                    <h4><strong>Generales</strong></h4>
+                                    <div class="row">
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="form-group">
+                                                <label>Servicio prestado</label>
+                                                <select-v2 :updatevalue="consulta.servicio_upgd_id"
+                                                           @change:updatevalue="val => consulta.servicio_upgd_id = val"
+                                                           optionkey="id"
+                                                           optiontext="descripcion"
+                                                           :objeto="serviciosUpgd"
+                                                           placeholder="seleccione servicio"
+                                                           v-model:number="consulta.servicio_upgd_id"
+                                                           data-vv-name="Servicio prestado"
+                                                           v-validate="'required'">
+                                                </select-v2>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="col-md-2 col-sm-4 col-xs-6" v-for="(variable,index) in paciente.rango_edad.variable">
                                     <div class="form-group">
                                         <label>@{{ variable.nombre }}</label>
@@ -75,7 +95,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" >Cancelar</button>
-                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="paciente" @response="guardarPaciente"></buttonsave>
+                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="pacienteConsulta" @response="guardarPaciente"></buttonsave>
             </div>
         </div>
     </div>

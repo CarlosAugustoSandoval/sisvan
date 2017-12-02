@@ -22,6 +22,8 @@ Route::group(['middleware' => 'auth'], function () {
     Route::get('/pacientes/complementos-pacientes', 'PacientesController@complementosPacientes');
     Route::post('/pacientes/procesaedad-pacientes', 'PacientesController@procesaEdadPacientes');
 
+    Route::post('/pacientes/guardar-consultas', 'PacientesController@guardarConsultas');
+
     Route::get('/usuarios/panel', 'UsuariosController@panel')->name("usuarios");
     Route::get('/upgds/panel', 'UpgdsController@panel')->name("upgds");
 });

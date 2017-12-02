@@ -243,4 +243,45 @@ class PacientesController extends Controller
             ]);
         }
     }
+
+    public function guardarConsultas(Request $request)
+    {
+        DB::beginTransaction();
+        try {
+            if ($request['paciente']['id'] != '') {
+                $persona = Persona::find($request['paciente']['id']);
+                $persona->tipo_identificacion_id = $request['paciente']['tipo_identificacion_id'];
+                $persona->identificacion = $request['paciente']['identificacion'];
+                $persona->nombre1 = $request['paciente']['nombre1'];
+                $persona->nombre2 = $request['paciente']['nombre2'];
+                $persona->apellido1 = $request['paciente']['apellido1'];
+                $persona->apellido2 = $request['paciente']['apellido2'];
+                $persona->nombre_completo = $persona->nombre1.' '.$persona->nombre2.' '.$persona->apellido1.' '.$persona->apellido2;
+                $persona->fecha_nacimiento = $request['paciente']['fecha_nacimiento'];
+                $persona->genero = $request['paciente']['genero'];
+                $persona->tipo_area_residencial_id = $request['paciente']['tipo_area_residencial_id'];
+                $persona->barrio_id = $request['paciente']['barrio_id'];
+                $persona->telefono = $request['paciente']['telefono'];
+                $persona->regimen_id = $request['paciente']['regimen_id'];
+                $persona->ep_id = $request['paciente']['ep_id'];
+                $persona->grupo_etnico_id = $request['paciente']['grupo_etnico_id'];
+                $persona->subgrupo_etnico_id = $request['paciente']['subgrupo_etnico_id'];
+                $persona->grupo_poblacional_id = $request['paciente']['grupo_poblacional_id'];
+                $persona->beneficiario = $request['paciente']['beneficiario'];
+                $persona->rango_edad_id = $this->calcularRangoEdad($request['paciente']['fecha_nacimiento']);
+
+                $persona->ProgramaSocial()->detach();
+                $persona->ProgramaSocial()->attach($request['paciente']['programa_social']);
+                $persona->save();
+                DB::commit();
+                var_dump($persona);
+            }
+        } catch (\Exception $exception) {
+            DB::rollback();
+            return response()->json([
+                'estado' => 'fail',
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
 }
