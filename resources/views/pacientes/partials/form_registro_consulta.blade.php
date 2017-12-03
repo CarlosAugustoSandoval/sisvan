@@ -20,7 +20,37 @@
                             <div class="row">
                                 <div class="col-sm-12">
                                     <h4><strong>Generales</strong></h4>
+                                    <div class="row border-bottom">
+                                        <div class="col-md-4 col-sm-3 col-xs-6">
+                                            <div class="form-group">
+                                                <label>Tipo usuario:</label> <span class="label label-primary f-14"><strong>@{{ paciente.rango_edad.descripcion }}</strong></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-3 col-xs-6">
+                                            <div class="form-group">
+                                                <label>Semana EPI:</label> <span class="label label-primary f-14"><strong>@{{ semanaEPI }}</strong></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-3 col-xs-6">
+                                            <div class="form-group">
+                                                <label>Edad años:</label> <span class="label label-primary f-14"><strong>@{{ edad.anios | decimal2 }}</strong></span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-2 col-sm-3 col-xs-6">
+                                            <div class="form-group">
+                                                <label>Edad meses:</label> <span class="label label-primary f-14"><strong>@{{ edad.meses | decimal2 }}</strong></span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="m-t-20"><strong>Valores</strong></h4>
                                     <div class="row">
+                                        <div class="col-sm-6 col-md-3">
+                                            <div class="form-group">
+                                                <label>Fecha consulta</label>
+                                                <input type="date" v-model="consulta.fecha_consulta" class="form-control form-white input-md" placeholder="Fecha consulta" data-vv-name="Fecha consulta" v-validate="'required'">
+                                            </div>
+                                        </div>
                                         <div class="col-md-3 col-sm-6">
                                             <div class="form-group">
                                                 <label>Servicio prestado</label>

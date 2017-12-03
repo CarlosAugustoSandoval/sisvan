@@ -107,7 +107,9 @@
                 consulta:{},
                 variable4:'',
                 variable5:'',
-                pacienteConsulta:{}
+                pacienteConsulta:{},
+                semanaEPI:'',
+                edad:{}
             },
             watch: {
                 'paciente'(val){
@@ -147,6 +149,9 @@
                         app.subgrupoDisabled = true;
                     }
                 },
+                'consulta.fecha_consulta'(val){
+                    app.semanaEPI = moment(String(val)).format('w');
+                },
 //                'paciente.fecha_nacimiento'(val) {
 //                    if(val){
 //                        var app = this;
@@ -178,6 +183,11 @@
                 dateShort:function(val){
                     if (val) {
                         return moment(String(val)).format('DD-MM-YYYY');
+                    }
+                },
+                decimal2:function (val) {
+                    if(val){
+                        return val.toFixed(2);
                     }
                 }
             },
@@ -239,6 +249,7 @@
                     this.consulta={
                         id:'',
                         servicio_upgd_id:'',
+                        fecha_consulta:'',
                         detalle_consulta:[]
                     }
                     this.subgruposEtnico=[];
@@ -248,7 +259,9 @@
                     this.pacienteConsulta = {
                         paciente:this.paciente,
                         consulta:this.consulta
-                    }
+                    };
+                    this.semanaEPI = '';
+                    this.edad = {};
                 },
                 cambiox(index){
                     if(index==4){
@@ -261,6 +274,7 @@
                     var app = this;
                     app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente.id, fecha_nacimiento:paciente.fecha_nacimiento}).then((response)=>{
                         if(response.body.estado=='ok'){
+                            app.edad = response.body.edad;
                             $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
                                 app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
                                 if(value.tipo_input=='select'){
@@ -269,8 +283,6 @@
                                         objectSelect.push({valor:valuex});
                                     });
                                     value.valor = objectSelect;
-                                    console.log('el objectSelect');
-                                    console.log(objectSelect);
                                 }
                             });
                             app.paciente = JSON.parse(JSON.stringify(paciente));
@@ -282,6 +294,7 @@
                             app.paciente.programa_social = itemsPrograma;
                             app.paciente.estado = this.paciente.estado=='Activo'?1:0;
                             app.indexRegistro = index;
+                            app.consulta.fecha_consulta = moment(new Date()).format('YYYY-MM-DD');
                         }
                         console.log('edad');
                         console.log(response.body.edad);
