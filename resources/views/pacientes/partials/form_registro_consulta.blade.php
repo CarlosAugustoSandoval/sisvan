@@ -21,7 +21,7 @@
                                 <div class="col-sm-12">
                                     <h4><strong>Generales</strong></h4>
                                     <div class="row border-bottom">
-                                        <div class="col-md-4 col-sm-3 col-xs-6">
+                                        <div class="col-md-3 col-sm-3 col-xs-6">
                                             <div class="form-group">
                                                 <label>Tipo usuario:</label> <span class="label label-primary f-14"><strong>@{{ paciente.rango_edad.descripcion }}</strong></span>
                                             </div>
@@ -67,55 +67,62 @@
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                <div class="col-md-2 col-sm-4 col-xs-6" v-for="(variable,index) in paciente.rango_edad.variable">
-                                    <div class="form-group">
-                                        <label>@{{ variable.nombre }}</label>
-                                        <input v-if="variable.tipo_input=='number' && variable.requerida==1"
-                                               class="form-control form-white"
-                                               type="number"
-                                               :placeholder="variable.nombre"
-                                               v-model.number="consulta.detalle_consulta[index].valor"
-                                               :data-vv-name="variable.nombre"
-                                               v-validate="'required'"
-                                               step="0.1"/>
+                                    <div class="row border-bottom">
+                                        <div class="col-md-2 col-sm-4 col-xs-6" v-for="(variable,index) in paciente.rango_edad.variable">
+                                            <div class="form-group">
+                                                <label>@{{ variable.nombre }}</label>
+                                                <input v-if="variable.tipo_input=='number' && variable.requerida==1"
+                                                       class="form-control form-white"
+                                                       type="number"
+                                                       :placeholder="variable.nombre"
+                                                       v-model.number="consulta.detalle_consulta[index].valor"
+                                                       :data-vv-name="variable.nombre"
+                                                       v-validate="'required'"
+                                                       step="0.1"/>
 
-                                        <input v-if="variable.tipo_input=='number' && variable.requerida==0"
-                                               class="form-control form-white"
-                                               type="number"
-                                               :placeholder="variable.nombre"
-                                               v-model.number="consulta.detalle_consulta[index].valor"
-                                               step="0.1"/>
+                                                <input v-if="variable.tipo_input=='number' && variable.requerida==0"
+                                                       class="form-control form-white"
+                                                       type="number"
+                                                       :placeholder="variable.nombre"
+                                                       v-model.number="consulta.detalle_consulta[index].valor"
+                                                       step="0.1"/>
 
-                                        <select-v2 v-if="index==4 && variable.tipo_input=='select' && variable.requerida==1"
-                                                :updatevalue="consulta.detalle_consulta[index].valor"
-                                                @change:updatevalue="val => consulta.detalle_consulta[index].valor = val"
-                                                @change2="cambiox(index)"
-                                                optionkey="valor"
-                                                optiontext="valor"
-                                                :objeto="variable.valor"
-                                                :placeholder="variable.nombre"
-                                                {{--v-model="consulta.detalle_consulta[index].valor"--}}
-                                                v-model:number="variable4"
-                                                :data-vv-name="variable.nombre"
-                                                v-validate="'required'">
-                                        </select-v2>
+                                                <select-v2 v-if="index==4 && variable.tipo_input=='select' && variable.requerida==1"
+                                                           :updatevalue="consulta.detalle_consulta[index].valor"
+                                                           @change:updatevalue="val => consulta.detalle_consulta[index].valor = val"
+                                                           @change2="cambiox(index)"
+                                                           optionkey="valor"
+                                                           optiontext="valor"
+                                                           :objeto="variable.valor"
+                                                           :placeholder="variable.nombre"
+                                                           {{--v-model="consulta.detalle_consulta[index].valor"--}}
+                                                           v-model:number="variable4"
+                                                           :data-vv-name="variable.nombre"
+                                                           v-validate="'required'">
+                                                </select-v2>
 
-                                        <select-v2 v-if="index==5 && variable.tipo_input=='select' && variable.requerida==1"
-                                                   :updatevalue="consulta.detalle_consulta[index].valor"
-                                                   @change:updatevalue="val => consulta.detalle_consulta[index].valor = val"
-                                                   @change2="cambiox(index)"
-                                                   optionkey="valor"
-                                                   optiontext="valor"
-                                                   :objeto="variable.valor"
-                                                   :placeholder="variable.nombre"
-                                                   {{--v-model="consulta.detalle_consulta[index].valor"--}}
-                                                   v-model:number="variable5"
-                                                   :data-vv-name="variable.nombre"
-                                                   v-validate="'required'">
-                                        </select-v2>
+                                                <select-v2 v-if="index==5 && variable.tipo_input=='select' && variable.requerida==1"
+                                                           :updatevalue="consulta.detalle_consulta[index].valor"
+                                                           @change:updatevalue="val => consulta.detalle_consulta[index].valor = val"
+                                                           @change2="cambiox(index)"
+                                                           optionkey="valor"
+                                                           optiontext="valor"
+                                                           :objeto="variable.valor"
+                                                           :placeholder="variable.nombre"
+                                                           {{--v-model="consulta.detalle_consulta[index].valor"--}}
+                                                           v-model:number="variable5"
+                                                           :data-vv-name="variable.nombre"
+                                                           v-validate="'required'">
+                                                </select-v2>
 
-                                        {{--<switch-bs v-if="variable.tipo_input=='radio'" :id="variable.tipo_input+index" :value="paciente.rango_edad.variable[index].valor" @update:value="val => paciente.rango_edad.variable[index].valor = val"></switch-bs>--}}
+                                                {{--<switch-bs v-if="variable.tipo_input=='radio'" :id="variable.tipo_input+index" :value="paciente.rango_edad.variable[index].valor" @update:value="val => paciente.rango_edad.variable[index].valor = val"></switch-bs>--}}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <h4 class="m-t-20"><strong>Clasificación nutricional</strong></h4>
+                                    <div class="row border-bottom">
+
                                     </div>
                                 </div>
                             </div>
@@ -125,7 +132,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" >Cancelar</button>
-                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="pacienteConsulta" @response="guardarPaciente"></buttonsave>
+                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="pacienteConsulta" @response="guardarConsulta" nav_target=".nav-tabs-consulta"></buttonsave>
             </div>
         </div>
     </div>

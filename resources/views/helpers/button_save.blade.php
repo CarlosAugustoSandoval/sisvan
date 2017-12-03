@@ -46,12 +46,11 @@
 
                     if($('.form-control[data-vv-name$="'+error.field+'"]').hasClass('form-control')){
                         $(app.nav_target).find('li:nth-child('+(($('.form-control[data-vv-name$="'+error.field+'"]').closest(".tab-pane").index())+1)+')').find('a').click();
-                        $('.form-control[data-vv-name$="'+error.field+'"]').focus();
+                        setTimeout(function(){ $('.form-control[data-vv-name$="'+error.field+'"]').focus(); }, 500);
                     }else{
                         $(app.nav_target).find('li:nth-child('+(($('.dropdown[data-vv-name$="'+error.field+'"]').closest(".tab-pane").index())+1)+')').find('a').click();
-                        $('select[data-vv-name$="'+error.field+'"]').closest('div').find('.select2-selection').focus();
+                        setTimeout(function(){ $('select[data-vv-name$="'+error.field+'"]').closest('div').find('.select2-selection').focus(); }, 500);
                     }
-                    console.log(error.field.toUpperCase()+": "+error.msg);
                     toastr["warning"](error.field.toUpperCase()+": "+error.msg);
                 });
             });

@@ -152,32 +152,11 @@
                 'consulta.fecha_consulta'(val){
                     app.semanaEPI = moment(String(val)).format('w');
                 },
-//                'paciente.fecha_nacimiento'(val) {
-//                    if(val){
-//                        var app = this;
-//                        app.$http.post('/pacientes/procesaedad-pacientes',{id:app.paciente.id, fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
-//                            if(response.body.estado=='ok'){
-//                                $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
-//                                    app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-//                                    if(value.tipo_input=='select'){
-//                                        var objectSelect = [];
-//                                        console.log('el value de paciente');
-//                                        console.log(value);
-//                                        $.each( value.valor.split(","), function( key, valuex ) {
-//                                            objectSelect.push({valor:valuex});
-//                                        });
-//                                        value.valor = objectSelect;
-//                                    }
-//                                });
-//                                app.paciente.rango_edad = response.body.paciente.rango_edad;
-//                            }
-//                            console.log('edad');
-//                            console.log(response.body.edad);
-//                        },(error)=>{
-//                            toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
-//                        });
-//                    }
-//                },
+                'paciente.fecha_nacimiento'(val) {
+                    if(val){
+                        app.cambioFechaNacimiento();
+                    }
+                },
             },
             filters:{
                 dateShort:function(val){
@@ -195,9 +174,41 @@
                 VPaginator: VuePaginator
             },
             methods: {
-                cambiaResultado(e,index){
-                    console.log(e);
-                        this.paciente.rango_edad.variable[index].valor =10;
+                cambioFechaNacimiento(paciente, index){
+                    var app = this;
+                    app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente?paciente.id:app.paciente.id, fecha_nacimiento:paciente?paciente.fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
+                        if(response.body.estado=='ok'){
+                            app.edad = response.body.edad;
+                            app.resetDetalleConsulta();
+                            $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
+                                app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
+                                if(value.tipo_input=='select'){
+                                    var objectSelect = [];
+                                    $.each( value.valor.split(","), function( key, valuex ) {
+                                        objectSelect.push({valor:valuex});
+                                    });
+                                    value.valor = objectSelect;
+                                }
+                            });
+
+                            if(paciente && index){
+                                app.paciente = JSON.parse(JSON.stringify(paciente));
+                                var itemsPrograma = [];
+                                $.each( app.paciente.programa_social, function( key, value ) {
+                                    itemsPrograma.push(value.id);
+                                });
+                                app.paciente.programa_social = itemsPrograma;
+                                app.paciente.estado = this.paciente.estado=='Activo'?1:0;
+                                app.indexRegistro = index;
+                                app.consulta.fecha_consulta = moment(new Date()).format('YYYY-MM-DD');
+                            }
+                            app.paciente.rango_edad = response.body.paciente.rango_edad;
+                            app.variable4='';
+                            app.variable5='';
+                        }
+                    },(error)=>{
+                        toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
+                    });
                 },
                 guardarPaciente(response){
                     if(response.tipo == 'update'){
@@ -251,7 +262,7 @@
                         servicio_upgd_id:'',
                         fecha_consulta:'',
                         detalle_consulta:[]
-                    }
+                    };
                     this.subgruposEtnico=[];
                     this.titleSubgrupoEtnico='';
                     this.variable4='';
@@ -263,6 +274,9 @@
                     this.semanaEPI = '';
                     this.edad = {};
                 },
+                resetDetalleConsulta(){
+                    this.consulta.detalle_consulta=[];
+                },
                 cambiox(index){
                     if(index==4){
                         this.variable4=index;
@@ -271,51 +285,7 @@
                     }
                 },
                 editarPaciente(paciente, index) {
-                    var app = this;
-                    app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente.id, fecha_nacimiento:paciente.fecha_nacimiento}).then((response)=>{
-                        if(response.body.estado=='ok'){
-                            app.edad = response.body.edad;
-                            $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
-                                app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-                                if(value.tipo_input=='select'){
-                                    var objectSelect = [];
-                                    $.each( value.valor.split(","), function( key, valuex ) {
-                                        objectSelect.push({valor:valuex});
-                                    });
-                                    value.valor = objectSelect;
-                                }
-                            });
-                            app.paciente = JSON.parse(JSON.stringify(paciente));
-                            var itemsPrograma = [];
-                            $.each( app.paciente.programa_social, function( key, value ) {
-                                itemsPrograma.push(value.id);
-                            });
-                            app.paciente.rango_edad = response.body.paciente.rango_edad;
-                            app.paciente.programa_social = itemsPrograma;
-                            app.paciente.estado = this.paciente.estado=='Activo'?1:0;
-                            app.indexRegistro = index;
-                            app.consulta.fecha_consulta = moment(new Date()).format('YYYY-MM-DD');
-                        }
-                        console.log('edad');
-                        console.log(response.body.edad);
-                    },(error)=>{
-                        toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
-                    });
-
-//                    app.consulta.detalle_consulta = [];
-//                    $.each( app.paciente.rango_edad.variable, function( key, value ) {
-//                        app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-//                        console.log('detalle rango');
-//                        console.log(app.consulta.detalle_consulta);
-//                        if(value.tipo_input=='select'){
-//                            var objectSelect = [];
-//                            $.each( value.valor.split(","), function( key, valuex ) {
-//                                objectSelect.push({valor:valuex});
-//                            });
-//                            value.valor = objectSelect;
-//                        }
-//                    });
-
+                    this.cambioFechaNacimiento(paciente, index);
                 },
                 complementosPaciente() {
                     this.$http.get('/pacientes/complementos-pacientes').then(

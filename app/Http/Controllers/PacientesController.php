@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\helpers\EnumsTrait;
 use App\Models\Catalogo\Barrio;
+use App\Models\Catalogo\Consulta;
+use App\Models\Catalogo\DetalleConsulta;
 use App\Models\Catalogo\Ep;
 use App\Models\Catalogo\GrupoEtnico;
 use App\Models\Catalogo\GrupoPoblacional;
@@ -273,8 +275,30 @@ class PacientesController extends Controller
                 $persona->ProgramaSocial()->detach();
                 $persona->ProgramaSocial()->attach($request['paciente']['programa_social']);
                 $persona->save();
+
+                $consulta = new Consulta();
+                $consulta->servicio_upgd_id = $request['consulta']['servicio_upgd_id'];
+                $consulta->fecha_consulta = $request['consulta']['fecha_consulta'];
+                $consulta->persona_id = $persona->id;
+                $consulta->gestante = 0;
+                $consulta->user_id = Auth::user()->id;
+                $consulta->save();
+
+                foreach ($request['consulta']['detalle_consulta'] as $key=>$detalle ) {
+                    $detalleconsulta = new DetalleConsulta();
+                    $detalleconsulta->consulta_id = $consulta->id;
+                    $detalleconsulta->rango_edad_variable_id = $detalle['rango_edad_variable_id'];
+                    $detalleconsulta->valor = $detalle['valor'];
+                    $detalleconsulta->save();
+                }
+
                 DB::commit();
-                var_dump($persona);
+                return response()->json([
+                    'estado' => 'ok',
+                    'tipo' => 'update',
+                    'message' => 'Consulta registrada satisfactoriamente',
+                    'paciente' => Persona::where('id','=',$persona->id)->with(['TipoIdentificacion','ProgramaSocial','RangoEdad.Variable','Consulta.DetalleConsulta'])->first()
+                ]);
             }
         } catch (\Exception $exception) {
             DB::rollback();

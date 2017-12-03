@@ -33,6 +33,8 @@
             <input type="text" v-model="paciente.nombre2" class="form-control form-white" placeholder="Segundo nombre">
         </div>
     </div>
+</div>
+<div class="row">
     <div class="col-sm-6 col-md-3">
         <div class="form-group">
             <label>Primer apellido</label>
@@ -65,6 +67,8 @@
             </select-v2>
         </div>
     </div>
+</div>
+<div class="row">
     <div class="col-sm-6 col-md-3">
         <div class="form-group">
             <label>Área residencial</label>
@@ -109,6 +113,8 @@
             <input type="text" v-model="paciente.telefono" class="form-control form-white" placeholder="Teléfono">
         </div>
     </div>
+</div>
+<div class="row">
     <div class="col-sm-6 col-md-3">
         <div class="form-group">
             <label>Régimen</label>

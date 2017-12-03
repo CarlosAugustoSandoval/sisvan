@@ -35,8 +35,6 @@
             },
             updatevalue:function(){
                 var app = this;
-                console.log('cambio valor');
-                console.log(app.updatevalue);
                 if(app.multiple){
                     $('#'+app.id).val(app.updatevalue).trigger('change');
                 }
@@ -60,14 +58,11 @@
                     }
                 }
                 if(app.options.url){
-                    console.log('entra si es url');
                     if((app.updatevalueObject == 'object'&&(app.updatevalue.id=='' || app.updatevalue.id==null)||(app.updatevalue=='' || app.updatevalue==null))){
-                        console.log('entra lanzar');
                         app.options.minimumInputLength = 0;
                         app.options.delay = 0;
                         app.lanzarSelectFilter();
                     }else{
-                        console.log('entra no lanzar');
                         app.options.delay = app.delay?app.delay:250;
                         app.options.minimumInputLength = app.minimuminputlength?app.minimuminputlength:0;
                     }
