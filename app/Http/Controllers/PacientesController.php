@@ -88,7 +88,6 @@ class PacientesController extends Controller
         $edad = new class{};
         $edad->anios=$años;
         $edad->meses=$años*12;
-
         return $edad;
     }
 
@@ -101,6 +100,7 @@ class PacientesController extends Controller
             $persona->save();
             DB::commit();
             $edad = $this->calcularEdad($request->fecha_nacimiento);
+            $edad->rango_edad_id = $persona->rango_edad_id;
 //            var_dump($edad);
             return response()->json([
                 'estado' => 'ok',

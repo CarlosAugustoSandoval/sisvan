@@ -19,7 +19,7 @@
                 <div class="row">
                     <div class="col-lg-2 col-md-2 col-sm-4 col-sm-12 pull-left">
                         <button type="button" class="btn btn-success btn-block" data-toggle="modal" data-target="#modal-registro-paciente">
-                            <i class="icon-plus2 white" aria-hidden="true"></i> Crear
+                            <i class="icon-plus2 white" aria-hidden="true"></i> Crear paciente
                         </button>
                     </div>
                     <div class="col-lg-4 col-md-5 col-sm-6 col-sm-12 pull-right">
@@ -44,7 +44,7 @@
                         <td>@{{ paciente.estado }}</td>
                         <td>
                             <div class="btn-group btn-sm">
-                                <button type="button" class="btn btn-info" v-on:click="editarPaciente(paciente,index)" data-toggle="modal" data-target="#modal-registro-consulta">Consulta</button>
+                                <button type="button" class="btn btn-info" v-on:click="editarPaciente(paciente,index)" data-toggle="modal" data-target="#modal-registro-consulta">Nueva consulta</button>
                                 <button type="button" class="btn btn-info dropdown-toggle" data-toggle="dropdown">
                                     <span class="caret"></span>
                                     <span class="sr-only">Dropdown</span>
@@ -52,7 +52,7 @@
                                 <span class="dropdown-arrow"></span>
                                 <ul class="dropdown-menu" role="menu">
                                     <li>
-                                        <a href="#" v-on:click="editarPaciente(paciente,index)" data-toggle="modal" data-target="#modal-registro-paciente">Actualizar</a>
+                                        <a href="#" v-on:click="editarPaciente(paciente,index)" data-toggle="modal" data-target="#modal-registro-paciente">Actualizar datos</a>
                                     </li>
                                 </ul>
                             </div>
@@ -174,6 +174,42 @@
                 VPaginator: VuePaginator
             },
             methods: {
+                clasificacionNutricional(){
+                    var app = this;
+                    app.$http.post('/pacientes/clasificacion-nutricional',{edad:app.edad, consulta:app.consulta}).then((response)=>{
+                        if(response.body.estado=='ok'){
+                            app.edad = response.body.edad;
+                            app.resetDetalleConsulta();
+                            $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
+                                app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
+                                if(value.tipo_input=='select'){
+                                    var objectSelect = [];
+                                    $.each( value.valor.split(","), function( key, valuex ) {
+                                        objectSelect.push({valor:valuex});
+                                    });
+                                    value.valor = objectSelect;
+                                }
+                            });
+
+                            if(paciente && index){
+                                app.paciente = JSON.parse(JSON.stringify(paciente));
+                                var itemsPrograma = [];
+                                $.each( app.paciente.programa_social, function( key, value ) {
+                                    itemsPrograma.push(value.id);
+                                });
+                                app.paciente.programa_social = itemsPrograma;
+                                app.paciente.estado = this.paciente.estado=='Activo'?1:0;
+                                app.indexRegistro = index;
+                                app.consulta.fecha_consulta = moment(new Date()).format('YYYY-MM-DD');
+                            }
+                            app.paciente.rango_edad = response.body.paciente.rango_edad;
+                            app.variable4='';
+                            app.variable5='';
+                        }
+                    },(error)=>{
+                        toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
+                    });
+                },
                 cambioFechaNacimiento(paciente, index){
                     var app = this;
                     app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente?paciente.id:app.paciente.id, fecha_nacimiento:paciente?paciente.fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
@@ -283,6 +319,7 @@
                     }else if(index==5){
                         this.variable5=index;
                     }
+                    this.clasificacionNutricional();
                 },
                 editarPaciente(paciente, index) {
                     this.cambioFechaNacimiento(paciente, index);

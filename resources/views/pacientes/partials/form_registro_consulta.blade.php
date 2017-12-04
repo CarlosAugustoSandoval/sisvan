@@ -78,14 +78,18 @@
                                                        v-model.number="consulta.detalle_consulta[index].valor"
                                                        :data-vv-name="variable.nombre"
                                                        v-validate="'required'"
-                                                       step="0.1"/>
+                                                       step="0.1"
+                                                       v-on:blur="clasificacionNutricional"
+                                                />
 
                                                 <input v-if="variable.tipo_input=='number' && variable.requerida==0"
                                                        class="form-control form-white"
                                                        type="number"
                                                        :placeholder="variable.nombre"
                                                        v-model.number="consulta.detalle_consulta[index].valor"
-                                                       step="0.1"/>
+                                                       step="0.1"
+                                                       v-on:blur="clasificacionNutricional"
+                                                />
 
                                                 <select-v2 v-if="index==4 && variable.tipo_input=='select' && variable.requerida==1"
                                                            :updatevalue="consulta.detalle_consulta[index].valor"
@@ -122,7 +126,38 @@
 
                                     <h4 class="m-t-20"><strong>Clasificación nutricional</strong></h4>
                                     <div class="row border-bottom">
-
+                                        <div class="col-xs-12">
+                                            <table class="table table-bordered">
+                                                <tbody>
+                                                <tr>
+                                                    <th class="bg-light-default" style="text-align:right !important;"><strong>IMC</strong></th>
+                                                    <td>20.4</td>
+                                                    <td class="bg-light-default" style="text-align:right !important;"><strong>Clasificaciòn HG</strong></td>
+                                                    <td>SIN ANEMIA</td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="col-xs-12">
+                                            <table class="table table-bordered">
+                                                <thead>
+                                                <tr>
+                                                    <th>INDICADOR</th>
+                                                    <th style="text-align:center !important;">Z-SCORE</th>
+                                                    <th>DATOS VALIDOS</th>
+                                                    <th>CLASIFICACIÓN NUTRICIONAL</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <tr>
+                                                    <td><strong></strong></td>
+                                                    <td style="text-align:center !important;"></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
