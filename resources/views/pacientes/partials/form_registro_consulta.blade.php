@@ -7,7 +7,7 @@
                 <h4 class="modal-title" v-text="modal.title"></h4>
             </div>
             <div class="modal-body">
-                <form id="form-consulta">
+                <form id="form-consulta" data-vv-scope="consulta">
                     <ul class="nav nav-tabs nav-primary nav-tabs-consulta">
                         <li class="active"><a href="#tab2_1" data-toggle="tab"><i :class="paciente.genero=='Masculino'?'icon-user':'icon-user-female'"></i> Datos del paciente</a></li>
                         <li class=""><a href="#tab2_2" data-toggle="tab"><i class="glyphicon glyphicon-list-alt"></i> Datos de la consulta</a></li>
@@ -167,7 +167,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" >Cancelar</button>
-                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="pacienteConsulta" @response="guardarConsulta" nav_target=".nav-tabs-consulta"></buttonsave>
+                <buttonsave id="submit_consulta" class_btn="btn-primary" form="form-consulta" url="/pacientes/guardar-consultas" :object="pacienteConsulta" @response="guardarConsulta" nav_target=".nav-tabs-consulta" v_scope="consulta"></buttonsave>
             </div>
         </div>
     </div>

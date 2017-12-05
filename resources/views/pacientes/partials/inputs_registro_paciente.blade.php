@@ -18,7 +18,7 @@
     <div class="col-sm-6 col-md-3">
         <div class="form-group">
             <label>Identificación</label>
-            <input type="text" v-model="paciente.identificacion" class="form-control form-white" placeholder="Identificación" data-vv-name="Identificación" v-validate="'required'">
+            <input type="text" v-model="paciente.identificacion" class="form-control form-white" placeholder="Identificación" data-vv-name="Identificación" v-validate="'required'" >
         </div>
     </div>
     <div class="col-sm-6 col-md-3">

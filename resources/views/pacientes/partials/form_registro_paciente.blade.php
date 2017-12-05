@@ -6,13 +6,13 @@
                 <h4 class="modal-title" v-text="modal.title"></h4>
             </div>
             <div class="modal-body">
-                <form id="form-paciente">
+                <form id="form-paciente" data-vv-scope="paciente">
                     @include('pacientes.partials.inputs_registro_paciente')
                 </form>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" >Cancelar</button>
-                <buttonsave id="submit_paciente" class_btn="btn-primary" form="form-paciente" url="/pacientes/guardar-pacientes" :object="paciente" @response="guardarPaciente"></buttonsave>
+                <buttonsave id="submit_paciente" class_btn="btn-primary" form="form-paciente" url="/pacientes/guardar-pacientes" :object="paciente" @response="guardarPaciente" v_scope="paciente"></buttonsave>
             </div>
         </div>
     </div>
