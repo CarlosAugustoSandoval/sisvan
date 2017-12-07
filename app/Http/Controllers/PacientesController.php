@@ -34,7 +34,7 @@ class PacientesController extends Controller
     public function obtenerPacientes(Request $request){
         try{
             $request =  json_decode($request->getContent());
-            $pacientes = Persona::Buscar($request->datos->busqueda)->with(['TipoIdentificacion','ProgramaSocial','RangoEdad.Variable','Consulta.DetalleConsulta'])->paginate(2);
+            $pacientes = Persona::Buscar($request->datos->busqueda)->with(['TipoIdentificacion','ProgramaSocial','RangoEdad.Variable','Consulta.DetalleConsulta'])->paginate(50);
             return response()->json($pacientes);
         }catch (\Exception $exception){
             return response()->json($exception);
@@ -91,6 +91,72 @@ class PacientesController extends Controller
         return $edad;
     }
 
+    public function clasificacionNutricional(Request $request)
+    {
+        try {
+            $clasificacion = new class{};
+            $datos = collect(['zs'=>'', 'dv'=>'', 'cn'=>'', 'clase'=>'']);
+            $variables = new class{};
+            $variables->peso='';
+            $variables->talla='';
+            $variables->pc='';
+            $variables->hg='';
+            $variables->imc='';
+
+            $clasificacion->imc='';
+            $clasificacion->hg = $datos;
+            $edadMeses = $request['edad']['meses'];
+            switch ($request['edad']['rango_edad_id']){
+                case 1:{
+                    foreach ($request['consulta']['detalle_consulta'] as $key=>$detalle ) {
+                        if(is_numeric($detalle['valor'])){
+                            switch($detalle['rango_edad_variable_id']){
+                                case 1:{
+                                    $variables->peso = $detalle['valor'];
+                                    break;
+                                }
+                                case 2:{
+                                    $variables->talla = $detalle['valor'];
+                                    break;
+                                }
+                                case 3:{
+                                    $variables->pc = $detalle['valor'];
+                                    break;
+                                }
+                                case 4:{
+                                    $variables->hg = $detalle['valor'];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    if(is_numeric($variables->peso) && is_numeric($variables->talla)){
+                        $variables->imc = $variables->peso / pow (($variables->talla / 100),2);
+                        $clasificacion->imc = $variables->imc;
+                    }
+
+                    if(is_numeric($variables->hg)){
+                        if($edadMeses<60 && $variables->hg>10.9){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'SIN ANEMIA', 'clase'=>'bg-success']);}
+                        if($edadMeses<60 && ($variables->hg<11 && $variables->hg>9.9)){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA LEVE', 'clase'=>'bg-warning']);}
+                        if($edadMeses<60 && ($variables->hg<10 && $variables->hg>6.9)){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA MODERADA', 'clase'=>'bg-warning']);}
+                        if($edadMeses<60 && $variables->hg<7){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA SEVERA', 'clase'=>'bg-danger']);}
+                    }
+                    break;
+                }
+            }
+
+            return response()->json([
+                'estado' => 'ok',
+                'clasificacion' =>  $clasificacion
+            ]);
+        } catch (\Exception $exception) {
+            return response()->json([
+                'estado' => 'fail',
+                'error' => $exception->getMessage(),
+            ]);
+        }
+    }
+
     public function procesaEdadPacientes(Request $request)
     {
         DB::beginTransaction();
@@ -101,7 +167,6 @@ class PacientesController extends Controller
             DB::commit();
             $edad = $this->calcularEdad($request->fecha_nacimiento);
             $edad->rango_edad_id = $persona->rango_edad_id;
-//            var_dump($edad);
             return response()->json([
                 'estado' => 'ok',
                 'paciente' =>  Persona::where('id','=',$persona->id)->with(['RangoEdad.Variable'])->first(),

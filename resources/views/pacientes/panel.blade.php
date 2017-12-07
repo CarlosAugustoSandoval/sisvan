@@ -109,7 +109,14 @@
                 variable5:'',
                 pacienteConsulta:{},
                 semanaEPI:'',
-                edad:{}
+                edad:{},
+                clasificacion:{
+                    imc:'',
+                    hg:{
+                        cn:'',
+                        clase:''
+                    }
+                }
             },
             watch: {
                 'paciente'(val){
@@ -178,33 +185,7 @@
                     var app = this;
                     app.$http.post('/pacientes/clasificacion-nutricional',{edad:app.edad, consulta:app.consulta}).then((response)=>{
                         if(response.body.estado=='ok'){
-                            app.edad = response.body.edad;
-                            app.resetDetalleConsulta();
-                            $.each( response.body.paciente.rango_edad.variable, function( key, value ) {
-                                app.consulta.detalle_consulta.push({rango_edad_variable_id:value.pivot.id, valor:''});
-                                if(value.tipo_input=='select'){
-                                    var objectSelect = [];
-                                    $.each( value.valor.split(","), function( key, valuex ) {
-                                        objectSelect.push({valor:valuex});
-                                    });
-                                    value.valor = objectSelect;
-                                }
-                            });
-
-                            if(paciente && index){
-                                app.paciente = JSON.parse(JSON.stringify(paciente));
-                                var itemsPrograma = [];
-                                $.each( app.paciente.programa_social, function( key, value ) {
-                                    itemsPrograma.push(value.id);
-                                });
-                                app.paciente.programa_social = itemsPrograma;
-                                app.paciente.estado = this.paciente.estado=='Activo'?1:0;
-                                app.indexRegistro = index;
-                                app.consulta.fecha_consulta = moment(new Date()).format('YYYY-MM-DD');
-                            }
-                            app.paciente.rango_edad = response.body.paciente.rango_edad;
-                            app.variable4='';
-                            app.variable5='';
+                            app.clasificacion = response.body.clasificacion;
                         }
                     },(error)=>{
                         toastr.error('Error en servidor:: '+error.status + ' '+error.statusText+' ('+error.url+')');
@@ -227,7 +208,7 @@
                                 }
                             });
 
-                            if(paciente && index){
+                            if(paciente && index>-1){
                                 app.paciente = JSON.parse(JSON.stringify(paciente));
                                 var itemsPrograma = [];
                                 $.each( app.paciente.programa_social, function( key, value ) {
@@ -312,6 +293,13 @@
                 },
                 resetDetalleConsulta(){
                     this.consulta.detalle_consulta=[];
+                    this.clasificacion ={
+                        imc:'',
+                        hg:{
+                            cn:'',
+                            clase:''
+                        }
+                    };
                 },
                 cambiox(index){
                     if(index==4){

@@ -19,7 +19,7 @@
                         <div class="tab-pane fade" id="tab2_2">
                             <div class="row">
                                 <div class="col-sm-12">
-                                    <h4><strong>Generales</strong></h4>
+                                    <h4><strong><i class="fa fa-list"></i> Generales</strong></h4>
                                     <div class="row border-bottom">
                                         <div class="col-md-3 col-sm-3 col-xs-6">
                                             <div class="form-group">
@@ -43,7 +43,7 @@
                                         </div>
                                     </div>
 
-                                    <h4 class="m-t-20"><strong>Valores</strong></h4>
+                                    <h4 class="m-t-20"><strong><i class="fa fa-sliders"></i> Valores</strong></h4>
                                     <div class="row">
                                         <div class="col-sm-6 col-md-3">
                                             <div class="form-group">
@@ -124,16 +124,16 @@
                                         </div>
                                     </div>
 
-                                    <h4 class="m-t-20"><strong>Clasificación nutricional</strong></h4>
+                                    <h4 class="m-t-20"><strong><i class="fa fa-line-chart"></i> Resultados</strong></h4>
                                     <div class="row border-bottom">
                                         <div class="col-xs-12">
                                             <table class="table table-bordered">
                                                 <tbody>
                                                 <tr>
                                                     <th class="bg-light-default" style="text-align:right !important;"><strong>IMC</strong></th>
-                                                    <td>20.4</td>
+                                                    <td>@{{ clasificacion.imc | decimal2 }}</td>
                                                     <td class="bg-light-default" style="text-align:right !important;"><strong>Clasificaciòn HG</strong></td>
-                                                    <td>SIN ANEMIA</td>
+                                                    <td :class="clasificacion.hg.clase">@{{ clasificacion.hg.cn }}</td>
                                                 </tr>
                                                 </tbody>
                                             </table>
