@@ -9,6 +9,7 @@ use App\Models\Catalogo\DetalleConsulta;
 use App\Models\Catalogo\Ep;
 use App\Models\Catalogo\GrupoEtnico;
 use App\Models\Catalogo\GrupoPoblacional;
+use App\Models\Catalogo\LmsDato;
 use App\Models\Catalogo\ProgramaSocial;
 use App\Models\Catalogo\Regimen;
 use App\Models\Catalogo\TipoAreaResidencial;
@@ -85,27 +86,59 @@ class PacientesController extends Controller
         $date = Carbon::createFromDate((int)$arrayDate[0], (int)$arrayDate[1], (int)$arrayDate[2], 'America/Bogota');
         $ahora = Carbon::now('America/Bogota');
         $años = ($date->diffInDays($ahora))/365;
+        $semanas = ($date->diffInWeeks($ahora));
         $edad = new class{};
         $edad->anios=$años;
         $edad->meses=$años*12;
+        $edad->semanas = $semanas;
         return $edad;
     }
 
     public function clasificacionNutricional(Request $request)
     {
         try {
-            $clasificacion = new class{};
-            $datos = collect(['zs'=>'', 'dv'=>'', 'cn'=>'', 'clase'=>'']);
             $variables = new class{};
             $variables->peso='';
             $variables->talla='';
             $variables->pc='';
             $variables->hg='';
             $variables->imc='';
+            $variables->edadMeses=$request['edad']['meses'];
+            $variables->edadSemanas=$request['edad']['semanas'];
+            $variables->genero=$request['edad']['genero'];
 
-            $clasificacion->imc='';
-            $clasificacion->hg = $datos;
-            $edadMeses = $request['edad']['meses'];
+            $datos = new class{
+              var $zs = '';
+              var $dv = '';
+              var $cn = '';
+              var $clase = '';
+            };
+
+            $datosLms = new class{
+                var $genero = '';
+                var $tipo_r = '';
+                var $r = '';
+                var $id_tipo_lms_datos = '';
+                var $x = '';
+            };
+
+            $clasificacion = new class{
+                var $imc = '';
+                var $hg = '';
+                var $pesotalla = '';
+                var $tallaedad = '';
+                var $pcedad = '';
+                var $pesoedad = '';
+                var $imcedad = '';
+            };
+
+            $clasificacion->hg = new $datos;
+            $clasificacion->pesotalla = new $datos;
+            $clasificacion->tallaedad = new $datos;
+            $clasificacion->pcedad = new $datos;
+            $clasificacion->pesoedad = new $datos;
+            $clasificacion->imcedad = new $datos;
+
             switch ($request['edad']['rango_edad_id']){
                 case 1:{
                     foreach ($request['consulta']['detalle_consulta'] as $key=>$detalle ) {
@@ -130,16 +163,56 @@ class PacientesController extends Controller
                             }
                         }
                     }
+
+
                     if(is_numeric($variables->peso) && is_numeric($variables->talla)){
+                        //IMC
                         $variables->imc = $variables->peso / pow (($variables->talla / 100),2);
                         $clasificacion->imc = $variables->imc;
                     }
 
+                    //PESO PARA LA EDAD
+                    if(is_numeric($variables->peso)){
+                        $lmsDatos = new $datosLms;
+                        $lmsDatos->id_tipo_lms_datos = 4;
+                        if(is_numeric($variables->edadSemanas) && ($variables->edadSemanas<13)){
+                            $lmsDatos->tipo_r = 'Semana';
+                        }else{
+                            $lmsDatos->tipo_r = 'Mes';
+                        }
+                        $lmsDatos->genero = $variables->genero;
+                        $lmsDatos->r = $variables->edadSemanas;
+                        $lmsDatos->x = $variables->peso;
+                        $clasificacion->pesoedad = $this->calcularZ($lmsDatos);
+                    }
+
+                    //HEMOGLOBINA
                     if(is_numeric($variables->hg)){
-                        if($edadMeses<60 && $variables->hg>10.9){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'SIN ANEMIA', 'clase'=>'bg-success']);}
-                        if($edadMeses<60 && ($variables->hg<11 && $variables->hg>9.9)){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA LEVE', 'clase'=>'bg-warning']);}
-                        if($edadMeses<60 && ($variables->hg<10 && $variables->hg>6.9)){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA MODERADA', 'clase'=>'bg-warning']);}
-                        if($edadMeses<60 && $variables->hg<7){$clasificacion->hg = collect(['zs'=>'', 'dv'=>'', 'cn'=>'ANEMIA SEVERA', 'clase'=>'bg-danger']);}
+                        if($variables->edadMeses<60 && $variables->hg>10.9){
+                            $clasificacion->hg->zs='';
+                            $clasificacion->hg->dv='';
+                            $clasificacion->hg->cn='SIN ANEMIA';
+                            $clasificacion->hg->clase='bg-success';
+                        }
+                        if($variables->edadMeses<60 && ($variables->hg<11 && $variables->hg>9.9)){
+                            $clasificacion->hg->zs='';
+                            $clasificacion->hg->dv='';
+                            $clasificacion->hg->cn='ANEMIA LEVE';
+                            $clasificacion->hg->clase='bg-warning';
+                        }
+
+                        if($variables->edadMeses<60 && ($variables->hg<10 && $variables->hg>6.9)){
+                            $clasificacion->hg->zs='';
+                            $clasificacion->hg->dv='';
+                            $clasificacion->hg->cn='ANEMIA MODERADA';
+                            $clasificacion->hg->clase='bg-warning';
+                        }
+                        if($variables->edadMeses<60 && $variables->hg<7){
+                            $clasificacion->hg->zs='';
+                            $clasificacion->hg->dv='';
+                            $clasificacion->hg->cn='ANEMIA SEVERA';
+                            $clasificacion->hg->clase='bg-danger';
+                        }
                     }
                     break;
                 }
@@ -157,6 +230,21 @@ class PacientesController extends Controller
         }
     }
 
+    public function calcularZ($lmsDatos){
+        $datos = new class{
+            var $zs = '';
+            var $dv = '';
+            var $cn = '';
+            var $clase = '';
+        };
+        $fz = LmsDato::where('genero','=',$lmsDatos->genero,'and')->where('tipo_r','=',$lmsDatos->tipo_r,'and')->where('r','=',$lmsDatos->r)->first();
+        if ($fz){
+            $datos->zs = (pow(((double)$lmsDatos->x / (double)$fz->m),(double)$fz->l)-1)/((double)$fz->l * (double)$fz->s);
+
+            return $datos;
+        }
+    }
+
     public function procesaEdadPacientes(Request $request)
     {
         DB::beginTransaction();
@@ -167,6 +255,7 @@ class PacientesController extends Controller
             DB::commit();
             $edad = $this->calcularEdad($request->fecha_nacimiento);
             $edad->rango_edad_id = $persona->rango_edad_id;
+            $edad->genero = $persona->genero;
             return response()->json([
                 'estado' => 'ok',
                 'paciente' =>  Persona::where('id','=',$persona->id)->with(['RangoEdad.Variable'])->first(),

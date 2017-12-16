@@ -113,8 +113,39 @@
                 clasificacion:{
                     imc:'',
                     hg:{
+                        zs:'',
+                        dv:'',
                         cn:'',
                         clase:''
+                    },pesotalla:{
+                        zs:'',
+                        dv:'',
+                        cn:'',
+                        clase:'',
+                    },
+                    tallaedad:{
+                        zs:'',
+                        dv:'',
+                        cn:'',
+                        clase:'',
+                    },
+                    pcedad:{
+                        zs:'',
+                        dv:'',
+                        cn:'',
+                        clase:'',
+                    },
+                    pesoedad:{
+                        zs:'',
+                        dv:'',
+                        cn:'',
+                        clase:'',
+                    },
+                    imcedad:{
+                        zs:'',
+                        dv:'',
+                        cn:'',
+                        clase:'',
                     }
                 }
             },
@@ -296,8 +327,39 @@
                     this.clasificacion ={
                         imc:'',
                         hg:{
+                            zs:'',
+                            dv:'',
                             cn:'',
                             clase:''
+                        },pesotalla:{
+                            zs:'',
+                            dv:'',
+                            cn:'',
+                            clase:'',
+                        },
+                        tallaedad:{
+                            zs:'',
+                            dv:'',
+                            cn:'',
+                            clase:'',
+                        },
+                        pcedad:{
+                            zs:'',
+                            dv:'',
+                            cn:'',
+                            clase:'',
+                        },
+                        pesoedad:{
+                            zs:'',
+                            dv:'',
+                            cn:'',
+                            clase:'',
+                        },
+                        imcedad:{
+                            zs:'',
+                            dv:'',
+                            cn:'',
+                            clase:'',
                         }
                     };
                 },

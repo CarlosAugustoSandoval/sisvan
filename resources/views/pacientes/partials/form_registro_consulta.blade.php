@@ -149,11 +149,35 @@
                                                 </tr>
                                                 </thead>
                                                 <tbody>
-                                                <tr>
-                                                    <td><strong></strong></td>
-                                                    <td style="text-align:center !important;"></td>
-                                                    <td></td>
-                                                    <td></td>
+                                                <tr :class="clasificacion.pesotalla.clase">
+                                                    <td><strong>PESO//TALLA</strong></td>
+                                                    <td style="text-align:center !important;">@{{ clasificacion.pesotalla.zs | decimal2 }}</td>
+                                                    <td>@{{ clasificacion.pesotalla.dv }}</td>
+                                                    <td>@{{ clasificacion.pesotalla.cn }}</td>
+                                                </tr>
+                                                <tr :class="clasificacion.tallaedad.clase">
+                                                    <td><strong>TALLA//EDAD</strong></td>
+                                                    <td style="text-align:center !important;">@{{ clasificacion.tallaedad.zs | decimal2 }}</td>
+                                                    <td>@{{ clasificacion.tallaedad.dv }}</td>
+                                                    <td>@{{ clasificacion.tallaedad.cn }}</td>
+                                                </tr>
+                                                <tr :class="clasificacion.pcedad.clase">
+                                                    <td><strong>PCEF//EDAD</strong></td>
+                                                    <td style="text-align:center !important;">@{{ clasificacion.pcedad.zs | decimal2 }}</td>
+                                                    <td>@{{ clasificacion.pcedad.dv }}</td>
+                                                    <td>@{{ clasificacion.pcedad.cn }}</td>
+                                                </tr>
+                                                <tr :class="clasificacion.pesoedad.clase">
+                                                    <td><strong>PESO//EDAD</strong></td>
+                                                    <td style="text-align:center !important;">@{{ clasificacion.pesoedad.zs | decimal2 }}</td>
+                                                    <td>@{{ clasificacion.pesoedad.dv }}</td>
+                                                    <td>@{{ clasificacion.pesoedad.cn }}</td>
+                                                </tr>
+                                                <tr :class="clasificacion.imcedad.clase">
+                                                    <td><strong>IMC//EDAD</strong></td>
+                                                    <td style="text-align:center !important;">@{{ clasificacion.imcedad.zs | decimal2 }}</td>
+                                                    <td>@{{ clasificacion.imcedad.dv }}</td>
+                                                    <td>@{{ clasificacion.imcedad.cn }}</td>
                                                 </tr>
                                                 </tbody>
                                             </table>
