@@ -167,6 +167,21 @@ class PacientesController extends Controller
                     $lmsDatos = new $datosLms;
                     $lmsDatos->genero = $variables->genero;
 
+                    if(is_numeric($variables->talla)){
+                        $lmsDatos->x = $variables->talla;
+                        $lmsDatos->id_tipo_lms_datos = 2;
+                        if(is_numeric($variables->edadSemanas) && ($variables->edadSemanas<13)){
+                            $lmsDatos->tipo_r = 'Semana';
+                            $lmsDatos->r = $variables->edadSemanas;
+                        }else{
+                            $lmsDatos->tipo_r = 'Mes';
+                            $lmsDatos->r = round($variables->edadMeses);
+                        }
+                        //TALLA PARA LA EDAD
+//                        var_dump($lmsDatos);
+                        $clasificacion->tallaedad = $this->calcularZ($lmsDatos, $variables);
+                    }
+
                     if(is_numeric($variables->peso)){
                         $lmsDatos->x = $variables->peso;
                         $lmsDatos->id_tipo_lms_datos = 4;
@@ -248,7 +263,7 @@ class PacientesController extends Controller
             var $cn = '';
             var $clase = '';
         };
-        $fz = LmsDato::where('genero','=',$lmsDatos->genero,'and')->where('tipo_r','=',$lmsDatos->tipo_r,'and')->where('r','=',$lmsDatos->r)->first();
+        $fz = LmsDato::where('genero','=',$lmsDatos->genero,'and')->where('tipo_r','=',$lmsDatos->tipo_r,'and')->where('id_tipo_lms_datos','=',$lmsDatos->id_tipo_lms_datos,'and')->where('r','=',$lmsDatos->r)->first();
         if ($fz){
             //Z-SCORE
             $datos->zs = (pow(((double)$lmsDatos->x / (double)$fz->m),(double)$fz->l)-1)/((double)$fz->l * (double)$fz->s);
@@ -309,6 +324,27 @@ class PacientesController extends Controller
                     }else if($datos->zs > 3){
                         $datos->cn = 'OBESIDAD';
                         $datos->clase = 'bg-danger';
+                    }
+                }else if($fz->id_tipo_lms_datos==2){
+                    //DATOS VALIDOS
+                    if($datos->zs >= 6){
+                        $datos->dv = 'DATOS EXTREMOS ALTOS';
+                    }else if($datos->zs <= -6){
+                        $datos->dv = 'DATOS EXTREMOS BAJOS';
+                    }ELSE if($datos->zs < 6 && $datos->zs > -6){
+                        $datos->dv = 'EN EL RANGO';
+                    }
+
+                    //CLASIFICACION NUTRICIONAL
+                    if($datos->zs < -2){
+                        $datos->cn = 'TALLA BAJA PARA LA EDAD';
+                        $datos->clase = 'bg-danger';
+                    }else if($datos->zs >= -2 && $datos->zs < -1){
+                        $datos->cn = 'RIESGO DE TALLA BAJA';
+                        $datos->clase = 'bg-warning';
+                    }ELSE if($datos->zs >= -1){
+                        $datos->cn = 'TALLA ADECUADA PARA LA EDAD';
+                        $datos->clase = 'bg-success';
                     }
                 }
             }
