@@ -164,26 +164,37 @@ class PacientesController extends Controller
                         }
                     }
 
+                    $lmsDatos = new $datosLms;
+                    $lmsDatos->genero = $variables->genero;
 
-                    if(is_numeric($variables->peso) && is_numeric($variables->talla)){
-                        //IMC
-                        $variables->imc = $variables->peso / pow (($variables->talla / 100),2);
-                        $clasificacion->imc = $variables->imc;
-                    }
-
-                    //PESO PARA LA EDAD
                     if(is_numeric($variables->peso)){
-                        $lmsDatos = new $datosLms;
+                        $lmsDatos->x = $variables->peso;
                         $lmsDatos->id_tipo_lms_datos = 4;
                         if(is_numeric($variables->edadSemanas) && ($variables->edadSemanas<13)){
                             $lmsDatos->tipo_r = 'Semana';
+                            $lmsDatos->r = $variables->edadSemanas;
                         }else{
                             $lmsDatos->tipo_r = 'Mes';
+                            $lmsDatos->r = round($variables->edadMeses);
                         }
-                        $lmsDatos->genero = $variables->genero;
-                        $lmsDatos->r = $variables->edadSemanas;
-                        $lmsDatos->x = $variables->peso;
-                        $clasificacion->pesoedad = $this->calcularZ($lmsDatos);
+                        //PESO PARA LA EDAD
+                        $clasificacion->pesoedad = $this->calcularZ($lmsDatos, $variables);
+
+                        if(is_numeric($variables->talla)){
+                            //IMC
+                            $variables->imc = $variables->peso / pow (($variables->talla / 100),2);
+                            $clasificacion->imc = $variables->imc;
+
+                            //PESO PARA LA TALLA
+                            $lmsDatos->tipo_r = 'Centimetro';
+                            $lmsDatos->r = $variables->talla;
+                            if($variables->edadMeses<24){
+                                $lmsDatos->id_tipo_lms_datos = 1;
+                            }else if($variables->edadMeses>=24 && $variables->edadMeses<60){
+                                $lmsDatos->id_tipo_lms_datos = 6;
+                            }
+                            $clasificacion->pesotalla = $this->calcularZ($lmsDatos, $variables);
+                        }
                     }
 
                     //HEMOGLOBINA
@@ -230,7 +241,7 @@ class PacientesController extends Controller
         }
     }
 
-    public function calcularZ($lmsDatos){
+    public function calcularZ($lmsDatos, $variables){
         $datos = new class{
             var $zs = '';
             var $dv = '';
@@ -239,8 +250,68 @@ class PacientesController extends Controller
         };
         $fz = LmsDato::where('genero','=',$lmsDatos->genero,'and')->where('tipo_r','=',$lmsDatos->tipo_r,'and')->where('r','=',$lmsDatos->r)->first();
         if ($fz){
+            //Z-SCORE
             $datos->zs = (pow(((double)$lmsDatos->x / (double)$fz->m),(double)$fz->l)-1)/((double)$fz->l * (double)$fz->s);
+            if($variables->edadMeses<60){
+                if($fz->id_tipo_lms_datos==4){
+                    //DATOS VALIDOS
+                    if($datos->zs >= 5){
+                        $datos->dv = 'DATOS EXTREMOS ALTOS';
+                    }else if($datos->zs <= -5){
+                        $datos->dv = 'DATOS EXTREMOS BAJOS';
+                    }ELSE if($datos->zs < 5 && $datos->zs > -5){
+                        $datos->dv = 'EN EL RANGO';
+                    }
 
+                    //CLASIFICACION NUTRICIONAL
+                    if($datos->zs < -2){
+                        $datos->cn = 'DESNUTRICIÓN GLOBAL';
+                        $datos->clase = 'bg-danger';
+                    }else if($datos->zs >= -2 && $datos->zs < -1){
+                        $datos->cn = 'RIESGO DE DESNUTRICIÓN GLOBAL';
+                        $datos->clase = 'bg-warning';
+                    }ELSE if($datos->zs >= -1 && $datos->zs <= 1){
+                        $datos->cn = 'PESO ADECUADO PARA LA EDAD';
+                        $datos->clase = 'bg-success';
+                    }else if($datos->zs > 1){
+                        $datos->cn = 'NO APLICA... VERIFICAR CON IMC/E';
+                        $datos->clase = 'bg-warning';
+                    }
+                }else if($fz->id_tipo_lms_datos==1){
+                    //DATOS VALIDOS
+                    if($datos->zs >= 5){
+                        $datos->dv = 'DATOS EXTREMOS ALTOS';
+                    }else if($datos->zs <= -5){
+                        $datos->dv = 'DATOS EXTREMOS BAJOS';
+                    }ELSE if($datos->zs < 5 && $datos->zs > -5){
+                        $datos->dv = 'EN EL RANGO';
+                    }
+
+                    //CLASIFICACION NUTRICIONAL
+                    if($datos->zs < -3){
+                        $datos->cn = 'DESNUTRICION AGUDA SEVERA';
+                        $datos->clase = 'bg-danger';
+                    }else if($datos->zs < -2 && $datos->zs >= -3){
+                        $datos->cn = 'DESNUTRICION AGUDA MODERADA';
+                        $datos->clase = 'bg-danger';
+                    }ELSE if($datos->zs >= -2 && $datos->zs < -1){
+                        $datos->cn = 'RIESGO DE PESO BAJO';
+                        $datos->clase = 'bg-warning';
+                    }else if($datos->zs >= -1 && $datos->zs <= 1){
+                        $datos->cn = 'PESO ADECUADO PARA LA TALLA';
+                        $datos->clase = 'bg-success';
+                    }else if($datos->zs > 1 && $datos->zs <= 2){
+                        $datos->cn = 'RIESGO DE SOBREPESO';
+                        $datos->clase = 'bg-warning';
+                    }else if($datos->zs > 2 && $datos->zs <= 3){
+                        $datos->cn = 'SOBREPESO';
+                        $datos->clase = 'bg-danger';
+                    }else if($datos->zs > 3){
+                        $datos->cn = 'OBESIDAD';
+                        $datos->clase = 'bg-danger';
+                    }
+                }
+            }
             return $datos;
         }
     }
