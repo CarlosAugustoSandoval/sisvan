@@ -18,6 +18,7 @@ use App\Persona;
 use Faker\Provider\id_ID\Person;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use Maatwebsite\Excel\Excel;
 use Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -79,6 +80,21 @@ class PacientesController extends Controller
         if($años>18 and $años<=64){
             return 3;
         }
+    }
+
+    public function reporteConsultasSemana(Request $request){
+        $request =  json_decode($request->getContent());
+        $arrayFechas = [];
+        for($i=0; $i<7; $i++){
+            $arrayFechas[$i] = date('Y-m-d',strtotime($request->excel_semana.'-'.$i));
+        }
+        $consultas = DB::table('consultas')
+            ->whereIn('fecha_consulta', $arrayFechas)
+            ->get();
+        $tabla = Excel::create('reporte', function ($consultas){
+            //cc
+        })->export('xlsx');
+//        var_dump($consultas);
     }
 
     public function calcularEdad($fecha){

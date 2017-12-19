@@ -1,5 +1,6 @@
 <script type="text/x-template" id="buttonsave">
     <button type="submit" :id="id?id:'ladda-button'" :form="form" class="btn ladda-button" :class="class_btn?class_btn:'btn-success'" data-spinner-size="30" data-style="expand-right">
+        <span v-if="icon_class"><i :class="icon_class"></i></span>
         <span class="ladda-label" v-text="label?label:'Guardar'"></span>
         <span class="ladda-spinner"></span>
     </button>
@@ -7,7 +8,7 @@
 <script>
     Vue.component('buttonsave', {
         template: '#buttonsave',
-        props:['form','label', 'id', 'class_btn', 'url', 'object', 'nav_target','v_scope'],
+        props:['form','label', 'id', 'class_btn', 'url', 'object', 'nav_target','v_scope', 'icon_class'],
         inject: {
             $validator: '$validator'
         },

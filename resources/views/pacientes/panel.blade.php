@@ -12,6 +12,7 @@
             <div class="panel-header border-bottom">
                 <h3>Pacientes registrados</h3>
                 <div class="control-btn">
+                    <a href="#" class="hidden" data-toggle="modal" data-target="#modal-excel-consulta"><i class="fa fa-file-excel-o"></i> Reporte de consultas</a>
                     <a href="#" class="panel-maximize hidden"><i class="icon-size-fullscreen"></i></a>
                 </div>
             </div>
@@ -65,6 +66,7 @@
         </div>
         @include('pacientes.partials.form_registro_consulta')
         @include('pacientes.partials.form_registro_paciente')
+        @include('pacientes.partials.form_excel_consulta')
     </div>
 @endsection
 
@@ -147,6 +149,10 @@
                         cn:'',
                         clase:'',
                     }
+                },
+                laSemana:{
+                    excel_semana:'',
+                    maxWeek:'',
                 }
             },
             watch: {
@@ -363,6 +369,12 @@
                         }
                     };
                 },
+                resetSemana(){
+                    this.laSemana={
+                        excel_semana:'',
+                            maxWeek:'',
+                    }
+                },
                 cambiox(index){
                     if(index==4){
                         this.variable4=index;
@@ -400,6 +412,7 @@
             mounted(){
                 var app = this;
                 app.maxDateBorn = moment(new Date()).format('YYYY-MM-DD');
+                app.laSemana.maxWeek = moment(new Date()).format('YYYY-[W]ww');
                 app.complementosPaciente();
                 $('#modal-registro-paciente').on("hidden.bs.modal", function () {
                     app.formReset();
@@ -414,6 +427,13 @@
                 $('#modal-registro-consulta').on("show.bs.modal", function () {
                     $('.nav-tabs-consulta').find('li:nth-child(1)').find('a').click();
                     app.modal.title = 'Registro de nueva consulta';
+                });
+
+                $('#modal-excel-consulta').on("hidden.bs.modal", function () {
+                    app.resetSemana();
+                });
+                $('#modal-excel-consulta').on("show.bs.modal", function () {
+                    app.modal.title = 'Reporte de consultas';
                 });
             },
         });
