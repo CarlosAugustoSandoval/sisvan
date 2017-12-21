@@ -273,7 +273,7 @@ class PacientesController extends Controller
                         //PESO PARA LA EDAD
                         $clasificacion->pesoedad = $this->calcularZ($lmsDatos, $variables);
 
-                        if(is_numeric($variables->talla)){
+                        if(is_numeric($variables->talla) && $variables->talla>=45){
                             //PESO PARA LA TALLA
                             $lmsDatos->tipo_r = 'Centimetro';
                             $lmsDatos->r = $variables->talla;
@@ -373,6 +373,8 @@ class PacientesController extends Controller
         if ($fz){
             //Z-SCORE
             $datos->zs = (pow(((double)$lmsDatos->x / (double)$fz->m),(double)$fz->l)-1)/((double)$fz->l * (double)$fz->s);
+
+//            var_dump($datos->zs.' -- '.$lmsDatos->id_tipo_lms_datos);
             if($variables->edadMeses<60){
                 if($fz->id_tipo_lms_datos==4){
                     //DATOS VALIDOS
@@ -398,7 +400,8 @@ class PacientesController extends Controller
                         $datos->cn = 'NO APLICA... VERIFICAR CON IMC/E';
                         $datos->clase = 'bg-info';
                     }
-                }else if($fz->id_tipo_lms_datos==1){
+                }else
+                    if($fz->id_tipo_lms_datos==1 || $fz->id_tipo_lms_datos==6){
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -431,7 +434,8 @@ class PacientesController extends Controller
                         $datos->cn = 'OBESIDAD';
                         $datos->clase = 'bg-danger';
                     }
-                }else if($fz->id_tipo_lms_datos==2){
+                }else
+                    if($fz->id_tipo_lms_datos==2){
                     //DATOS VALIDOS
                     if($datos->zs >= 6){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -452,7 +456,8 @@ class PacientesController extends Controller
                         $datos->cn = 'TALLA ADECUADA PARA LA EDAD';
                         $datos->clase = 'bg-success';
                     }
-                }else if($fz->id_tipo_lms_datos==5){
+                }else
+                    if($fz->id_tipo_lms_datos==5){
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -476,7 +481,8 @@ class PacientesController extends Controller
                         $datos->cn = 'OBESIDAD';
                         $datos->clase = 'bg-danger';
                     }
-                }else if($fz->id_tipo_lms_datos==3){
+                }else
+                    if($fz->id_tipo_lms_datos==3){
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
