@@ -18,8 +18,8 @@ class Persona extends Model
         return $this->belongsTo('App\Models\Catalogo\Ep');
     }
 
-    public function TipoAreaResidencia(){
-        return $this->belongsTo('App\Models\Catalogo\TipoAreaResidencia');
+    public function TipoAreaResidencial(){
+        return $this->belongsTo('App\Models\Catalogo\TipoAreaResidencial');
     }
 
     public function Barrio(){

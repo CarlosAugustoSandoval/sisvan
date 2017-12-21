@@ -186,7 +186,7 @@
                         this.paciente.programa_social = [];
                     }
                 },
-                'subgruposEtnico'(val) {
+                'paciente.subgrupo_etnico_id'(val) {
                     if(val.length>0){
                         app.subgrupoDisabled = false;
                     }else{
@@ -218,6 +218,11 @@
                 VPaginator: VuePaginator
             },
             methods: {
+                exportado(data){
+                    if(data.estado=='ok'){
+                        window.open('/pacientes/excel-exporta-consulta','_blank')
+                    }
+                },
                 clasificacionNutricional(){
                     var app = this;
                     app.$http.post('/pacientes/clasificacion-nutricional',{edad:app.edad, consulta:app.consulta}).then((response)=>{
@@ -411,9 +416,9 @@
             },
             mounted(){
                 var app = this;
+                app.complementosPaciente();
                 app.maxDateBorn = moment(new Date()).format('YYYY-MM-DD');
                 app.laSemana.maxWeek = moment(new Date()).format('YYYY-[W]ww');
-                app.complementosPaciente();
                 $('#modal-registro-paciente').on("hidden.bs.modal", function () {
                     app.formReset();
                 });

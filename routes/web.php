@@ -25,6 +25,7 @@ Route::group(['middleware' => 'auth'], function () {
     Route::post('/pacientes/clasificacion-nutricional', 'PacientesController@clasificacionNutricional');
     Route::post('/pacientes/guardar-consultas', 'PacientesController@guardarConsultas');
     Route::post('/pacientes/excel-consulta', 'PacientesController@reporteConsultasSemana');
+    Route::get('/pacientes/excel-exporta-consulta', 'PacientesController@rConsultas');
 
     Route::get('/usuarios/panel', 'UsuariosController@panel')->name("usuarios");
     Route::get('/upgds/panel', 'UpgdsController@panel')->name("upgds");

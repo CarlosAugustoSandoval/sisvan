@@ -22,7 +22,8 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" >Cerrar</button>
-                <buttonsave id="submit_excel_consulta" class_btn="btn-primary" form="form-excel_consulta" url="/pacientes/excel-consulta" :object="laSemana" v_scope="excel_consulta" icon_class="fa fa-file-excel-o" label=" Exportar"></buttonsave>
+                {{--<a :href="laRutaSemana" class="btn btn-outline-secondary" >Cerrar</a>--}}
+                <buttonsave id="submit_excel_consulta" class_btn="btn-primary" form="form-excel_consulta" @response="exportado" url="/pacientes/excel-consulta" :object="laSemana" v_scope="excel_consulta" icon_class="fa fa-file-excel-o" label=" Exportar"></buttonsave>
             </div>
         </div>
     </div>

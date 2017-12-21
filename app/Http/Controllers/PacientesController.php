@@ -15,15 +15,15 @@ use App\Models\Catalogo\Regimen;
 use App\Models\Catalogo\TipoAreaResidencial;
 use App\Models\Catalogo\TipoIdentificacion;
 use App\Persona;
-use Faker\Provider\id_ID\Person;
+use App\Upgd;
 use Illuminate\Http\Request;
-use App\Http\Controllers\Controller;
-use Maatwebsite\Excel\Excel;
 use Validator;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Carbon\Carbon;
+use Maatwebsite\Excel\Facades\Excel;
+
 
 
 class PacientesController extends Controller
@@ -53,7 +53,6 @@ class PacientesController extends Controller
                 'epss' => Ep::where('estado','=','Activa')->get(),
                 'tiposAreaResidencial' => TipoAreaResidencial::get(),
                 'barrios' => Barrio::where('municipio_id','=',$usuario[0]['upgd']->municipio_id)->get(),
-                'tiposAreaResidencial' => TipoAreaResidencial::get(),
                 'gruposEtnico' => GrupoEtnico::with(['SubgrupoEtnico'])->get(),
                 'gruposPoblacional' => GrupoPoblacional::get(),
                 'programasSocial' => ProgramaSocial::where('estado','=','Activo')->get(),
@@ -83,19 +82,83 @@ class PacientesController extends Controller
     }
 
     public function reporteConsultasSemana(Request $request){
-        $request =  json_decode($request->getContent());
-        $arrayFechas = [];
-        for($i=0; $i<7; $i++){
-            $arrayFechas[$i] = date('Y-m-d',strtotime($request->excel_semana.'-'.$i));
+        DB::beginTransaction();
+        try{
+            $request =  json_decode($request->getContent());
+            $upgd = Upgd::find(Auth::user()->upgd_id);
+            $upgd->ultima_semana_reporte = $request->excel_semana;
+            $upgd->save();
+            DB::commit();
+            return response()->json([
+                'estado' => 'ok',
+                'message' => 'Reporte registrado',
+            ]);
+        }catch (\Exception $exception) {
+            DB::rollback();
+            return response()->json([
+                'estado' => 'fail',
+                'error' => $exception->getMessage(),
+            ]);
         }
-        $consultas = DB::table('consultas')
-            ->whereIn('fecha_consulta', $arrayFechas)
-            ->get();
-        $tabla = Excel::create('reporte', function ($consultas){
-            //cc
-        })->export('xlsx');
-//        var_dump($consultas);
     }
+
+    static function rConsultas(){
+        $upgd = Upgd::find(Auth::user()->upgd_id)->with(['TipoInstitucion'])->first();
+        $arrayFechas = [];
+        $arraySemana =  explode("W", $upgd->ultima_semana_reporte);
+        $intSemana = $arraySemana[1];
+        for($i=0; $i<7; $i++){
+            $arrayFechas[$i] = date('Y-m-d',strtotime($upgd->ultima_semana_reporte.'-'.$i));
+        }
+        $consultas = Consulta::whereIn('fecha_consulta', $arrayFechas)
+            ->with(['DetalleConsulta','ServicioUpgd.Servicio','Persona.Barrio.Municipio', 'Persona.RangoEdad', 'Persona.Regimen', 'Persona.Ep', 'Persona.TipoAreaResidencial', 'Persona.GrupoEtnico', 'Persona.SubgrupoEtnico', 'Persona.GrupoPoblacional', 'Persona.ProgramaSocial'])
+            ->get();
+
+//        var_dump($consultas);
+        Excel::create('reporte', function ($excel) use($consultas, $upgd, $intSemana){
+            // Set the title
+            $excel->setTitle('Our new awesome title');
+
+            // Chain the setters
+            $excel->setCreator('Maatwebsite')
+                ->setCompany('Maatwebsite');
+
+            // Call them separately
+            $excel->setDescription('A demonstration to change the file properties');
+
+            $excel->sheet('Reporte', function($sheet) use($consultas, $upgd, $intSemana){
+                $rowRegistros=4;
+                function extraeValor($detalles, $variable){
+                    foreach ($detalles as $key=>$detalle ) {
+                        if($detalle->rango_edad_variable_id == $variable){
+                            return $detalle->valor;
+                        }
+                    }
+                }
+                function extraeIMC($detalles){
+                    $peso=0;
+                    $talla=0;
+                    foreach ($detalles as $key=>$detalle ) {
+                        if($detalle->rango_edad_variable_id == 1){
+                            $peso = $detalle->valor;
+                        }
+                        if($detalle->rango_edad_variable_id == 2){
+                            $talla = $detalle->valor;
+                        }
+                    }
+                    return round(($peso / pow (($talla / 100),2)),1);
+                }
+                $sheet->row(1,['UniqueKey', 'FECHAVALORACION', 'MUNICIPIO', 'INSTITUCION', 'TIPODEINSTITUCION', 'SERVICIO', 'SEMANAEPI', 'TIPODEDOCUMENTO', 'NUMERODELDOCUMENTO', 'NOMBRE1', 'NOMBRE2', 'APELLIDO1', 'APELLIDO2', 'FECHANACIMIENTO', 'EDADMESES', 'EDADYEARS', 'TIPODEUSUARIO', 'TIPOAFILIACION', 'ENTIDAD', 'AREADERESIDANCIA', 'NOMBREDELBARRIOOLAVEREDA', 'DIRECCIONOINDICACIONES', 'NUMERODETELEFONO', 'PERTENENCIAETNICA', 'GRUPOINDIGENA', 'GRUPOPOBLACION', 'BENEFICIARIODEPROGRAMAS', 'DESAYUNOINFANTIL', 'CDI', 'RESTAURANTEESCOLAR', 'RECUPERACIONNUTRICIONAL', 'FAMILIASENACCION', 'MODALIDADFAMILIARICBF', 'REDUNIDOS', 'OTRO', 'PESOGES', 'TALLAGES', 'IMCGES', 'FUR', 'EDADGESTACIONAL', 'SUPLEMENTACION', 'HEMOGLOBINAgdl', 'CLASIFICAICONHB', 'DXNUTRIGESTANTE', 'SEXO', 'PESOKG', 'TALLACM', 'IMC', 'PERIMCEFALICO', 'HGMENORES18', 'CLASIFICACIONHGMENORES', 'LMEXCLUSIVA', 'LMACTUAL', 'ZPESOTALLAM5', 'FLAGPTM5', 'DXPTM5', 'ZTALLAEDADM5', 'FLAGTEM5', 'DXTEM5', 'ZPCEFEDADM5', 'FLAGPCEM5', 'DXPCEM5', 'ZPESOEDADM5', 'FLAGPEM5', 'DXPEM5', 'ZIMCEDADM5', 'FLAGIMCM5', 'DXIMCM5', 'ZIMCEDAD518', 'FLAGIMC518', 'DXIMC518', 'ZTALLAEDAD518', 'FLAGTE518', 'DXTE518', 'SEXOAD', 'PESOAD', 'TALLAAD', 'IMCAD', 'CIRCUNFCINTURAD', 'DXADULTOIMC', 'SUBCLAOBESIDAD', 'DXCCINTURADULTO']);
+
+                foreach ($consultas as $key=>$consulta ) {
+                    $regis = $rowRegistros + $key;
+                    $sheet->row($regis,[$consulta->id, $consulta->fecha_consulta, $consulta->Persona->Barrio->Municipio->nombre, $upgd->razon_social, $upgd->TipoInstitucion->descripcion, $consulta->ServicioUpgd->Servicio->descripcion, $intSemana, $consulta->Persona->tipo_identificacion_id , $consulta->Persona->identificacion, $consulta->Persona->nombre1, $consulta->Persona->nombre2, $consulta->Persona->apellido1, $consulta->Persona->apellido2, $consulta->Persona->fecha_nacimiento, 'Edad mes', 'Edad anios', $consulta->Persona->RangoEdad->descripcion, $consulta->Persona->Regimen->nombre, $consulta->Persona->Ep->nombre, $consulta->Persona->TipoAreaResidencial->nombre, $consulta->Persona->Barrio->nombre, $consulta->Persona->direccion, $consulta->Persona->telefono, $consulta->Persona->GrupoEtnico->nombre, $consulta->Persona->subgrupo_etnico_id!=null? $consulta->Persona->SubgrupoEtnico->nombre:'', $consulta->Persona->GrupoPoblacional->nombre, $consulta->Persona->beneficiario, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', $consulta->Persona->genero=='Masculino'?1:2, extraeValor($consulta->DetalleConsulta,1), extraeValor($consulta->DetalleConsulta,2), extraeIMC($consulta->DetalleConsulta), extraeValor($consulta->DetalleConsulta,3), extraeValor($consulta->DetalleConsulta,4), '', extraeValor($consulta->DetalleConsulta,6), extraeValor($consulta->DetalleConsulta,5)]);
+                }
+            });
+        })->export('xls');
+
+    }
+
 
     public function calcularEdad($fecha){
         $arrayDate = explode("-", $fecha);

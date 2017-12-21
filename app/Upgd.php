@@ -13,4 +13,8 @@ class Upgd extends Model
     public function Servicio(){
         return $this->belongsToMany('App\Models\Catalogo\Servicio')->withPivot('id')->withTimestamps();
     }
+
+    public function TipoInstitucion(){
+        return $this->belongsTo('App\Models\Catalogo\TipoInstitucion');
+    }
 }
