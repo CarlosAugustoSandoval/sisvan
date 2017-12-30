@@ -17,4 +17,8 @@ class Consulta extends Model
     public function DetalleConsulta() {
         return $this->hasMany('App\Models\Catalogo\DetalleConsulta');
     }
+
+    public function DiagnosticoNutricional() {
+        return $this->hasMany('App\Models\Catalogo\DiagnosticoNutricional');
+    }
 }

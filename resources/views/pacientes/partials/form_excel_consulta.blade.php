@@ -16,7 +16,7 @@
                                v-model="laSemana.excel_semana"
                                data-vv-name="Semana epidemiológica"
                                v-validate="'required'"
-                               step="0.1">
+                               data-vv-scope="excel_consulta">
                     </div>
                 </form>
             </div>

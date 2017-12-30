@@ -78,7 +78,7 @@
                                                        v-model.number="consulta.detalle_consulta[index].valor"
                                                        :data-vv-name="variable.nombre"
                                                        v-validate="'required'"
-                                                       step="0.1"
+                                                       :step="variable.step"
                                                        v-on:blur="clasificacionNutricional"
                                                 />
 
@@ -87,7 +87,7 @@
                                                        type="number"
                                                        :placeholder="variable.nombre"
                                                        v-model.number="consulta.detalle_consulta[index].valor"
-                                                       step="0.1"
+                                                       :step="variable.step"
                                                        v-on:blur="clasificacionNutricional"
                                                 />
 

@@ -64,9 +64,10 @@
                 <v-paginator ref="vpaginator" :resource_url="resource_url" :value="pacientes" @update:value="val => pacientes = val" :datos="datos"></v-paginator>
             </div>
         </div>
+        @include('pacientes.partials.form_excel_consulta')
         @include('pacientes.partials.form_registro_consulta')
         @include('pacientes.partials.form_registro_paciente')
-        @include('pacientes.partials.form_excel_consulta')
+
     </div>
 @endsection
 
@@ -115,35 +116,41 @@
                 clasificacion:{
                     imc:'',
                     hg:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
                         clase:''
                     },pesotalla:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
                         clase:'',
                     },
                     tallaedad:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
                         clase:'',
                     },
                     pcedad:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
                         clase:'',
                     },
                     pesoedad:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
                         clase:'',
                     },
                     imcedad:{
+                        tipo_diagnostico_id:'',
                         zs:'',
                         dv:'',
                         cn:'',
@@ -158,6 +165,9 @@
             watch: {
                 'paciente'(val){
                     this.pacienteConsulta.paciente  = val;
+                },
+                'clasificacion'(val){
+                    this.pacienteConsulta.clasificacion  = val;
                 },
                 'consulta'(val){
                     this.pacienteConsulta.consulta  = val;
@@ -194,6 +204,7 @@
                     }
                 },
                 'consulta.fecha_consulta'(val){
+                    app.cambioFechaNacimiento();
                     app.semanaEPI = moment(String(val)).format('w');
                 },
                 'paciente.fecha_nacimiento'(val) {
@@ -235,7 +246,7 @@
                 },
                 cambioFechaNacimiento(paciente, index){
                     var app = this;
-                    app.$http.post('/pacientes/procesaedad-pacientes',{id:paciente?paciente.id:app.paciente.id, fecha_nacimiento:paciente?paciente.fecha_nacimiento:app.paciente.fecha_nacimiento}).then((response)=>{
+                    app.$http.post('/pacientes/procesaedad-pacientes',{paciente:paciente?paciente:app.paciente, consulta:app.consulta}).then((response)=>{
                         if(response.body.estado=='ok'){
                             app.edad = response.body.edad;
                             app.resetDetalleConsulta();
@@ -328,7 +339,8 @@
                     this.variable5='';
                     this.pacienteConsulta = {
                         paciente:this.paciente,
-                        consulta:this.consulta
+                        consulta:this.consulta,
+                        clasificacion:this.clasificacion
                     };
                     this.semanaEPI = '';
                     this.edad = {};
@@ -338,35 +350,41 @@
                     this.clasificacion ={
                         imc:'',
                         hg:{
+                            tipo_diagnostico_id:'1',
                             zs:'',
                             dv:'',
                             cn:'',
                             clase:''
                         },pesotalla:{
+                            tipo_diagnostico_id:'2',
                             zs:'',
                             dv:'',
                             cn:'',
                             clase:'',
                         },
                         tallaedad:{
+                            tipo_diagnostico_id:'3',
                             zs:'',
                             dv:'',
                             cn:'',
                             clase:'',
                         },
                         pcedad:{
+                            tipo_diagnostico_id:'4',
                             zs:'',
                             dv:'',
                             cn:'',
                             clase:'',
                         },
                         pesoedad:{
+                            tipo_diagnostico_id:'5',
                             zs:'',
                             dv:'',
                             cn:'',
                             clase:'',
                         },
                         imcedad:{
+                            tipo_diagnostico_id:'6',
                             zs:'',
                             dv:'',
                             cn:'',
@@ -424,14 +442,17 @@
                 });
                 $('#modal-registro-paciente').on("show.bs.modal", function () {
                     app.modal.title = (app.paciente.id != ''?'Edición de ':'Nuevo ') + 'paciente';
+                    app.errors.clear('excel_consulta');
                 });
 
                 $('#modal-registro-consulta').on("hidden.bs.modal", function () {
                     app.formReset();
                 });
+
                 $('#modal-registro-consulta').on("show.bs.modal", function () {
                     $('.nav-tabs-consulta').find('li:nth-child(1)').find('a').click();
                     app.modal.title = 'Registro de nueva consulta';
+                    app.errors.clear('excel_consulta');
                 });
 
                 $('#modal-excel-consulta').on("hidden.bs.modal", function () {
@@ -439,6 +460,8 @@
                 });
                 $('#modal-excel-consulta').on("show.bs.modal", function () {
                     app.modal.title = 'Reporte de consultas';
+                    app.errors.clear('consulta');
+                    app.errors.clear('paciente');
                 });
             },
         });

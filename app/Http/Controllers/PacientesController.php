@@ -6,6 +6,7 @@ use App\Http\helpers\EnumsTrait;
 use App\Models\Catalogo\Barrio;
 use App\Models\Catalogo\Consulta;
 use App\Models\Catalogo\DetalleConsulta;
+use App\Models\Catalogo\DiagnosticoNutricional;
 use App\Models\Catalogo\Ep;
 use App\Models\Catalogo\GrupoEtnico;
 use App\Models\Catalogo\GrupoPoblacional;
@@ -65,10 +66,11 @@ class PacientesController extends Controller
         }
     }
 
-    public function calcularRangoEdad($fecha){
+    public function calcularRangoEdad($fecha, $consulta){
         $arrayDate = explode("-", $fecha);
+        $arrayDateConsulta = explode("-", $consulta);
         $date = Carbon::createFromDate((int)$arrayDate[0], (int)$arrayDate[1], (int)$arrayDate[2], 'America/Bogota');
-        $ahora = Carbon::now('America/Bogota');
+        $ahora = Carbon::createFromDate((int)$arrayDateConsulta[0], (int)$arrayDateConsulta[1], (int)$arrayDateConsulta[2], 'America/Bogota');
         $años = ($date->diffInDays($ahora))/365;
         if($años>0 and $años<=5){
             return 1;
@@ -110,8 +112,9 @@ class PacientesController extends Controller
         for($i=0; $i<7; $i++){
             $arrayFechas[$i] = date('Y-m-d',strtotime($upgd->ultima_semana_reporte.'-'.$i));
         }
-        $consultas = Consulta::whereIn('fecha_consulta', $arrayFechas)
-            ->with(['DetalleConsulta','ServicioUpgd.Servicio','Persona.Barrio.Municipio', 'Persona.RangoEdad', 'Persona.Regimen', 'Persona.Ep', 'Persona.TipoAreaResidencial', 'Persona.GrupoEtnico', 'Persona.SubgrupoEtnico', 'Persona.GrupoPoblacional', 'Persona.ProgramaSocial'])
+        $consultas = Consulta::whereIn('fecha_consulta', $arrayFechas,'and')
+            ->where('activa','=',1)
+            ->with(['DetalleConsulta', 'DiagnosticoNutricional', 'ServicioUpgd.Servicio','Persona.Barrio.Municipio', 'Persona.RangoEdad', 'Persona.Regimen', 'Persona.Ep', 'Persona.TipoAreaResidencial', 'Persona.GrupoEtnico', 'Persona.SubgrupoEtnico', 'Persona.GrupoPoblacional', 'Persona.ProgramaSocial'])
             ->get();
 
 //        var_dump($consultas);
@@ -120,11 +123,11 @@ class PacientesController extends Controller
             $excel->setTitle('Our new awesome title');
 
             // Chain the setters
-            $excel->setCreator('Maatwebsite')
-                ->setCompany('Maatwebsite');
+            $excel->setCreator('Software SISVAN')
+                ->setCompany('SISVAN');
 
             // Call them separately
-            $excel->setDescription('A demonstration to change the file properties');
+            $excel->setDescription('Reporte de consultas');
 
             $excel->sheet('Reporte', function($sheet) use($consultas, $upgd, $intSemana){
                 $rowRegistros=4;
@@ -135,6 +138,7 @@ class PacientesController extends Controller
                         }
                     }
                 }
+
                 function extraeIMC($detalles){
                     $peso=0;
                     $talla=0;
@@ -148,11 +152,30 @@ class PacientesController extends Controller
                     }
                     return round(($peso / pow (($talla / 100),2)),1);
                 }
+
+                function extraeDiagnostico($diagnosticos, $tipo, $variable){
+                    foreach ($diagnosticos as $key=>$diagnostico ) {
+                        switch($diagnostico->tipo_diagnostico_id){
+                            case $tipo:{
+                                return is_numeric($diagnostico[$variable])? round($diagnostico[$variable],2):$diagnostico[$variable];
+                            }
+                        }
+                    }
+                }
+
+                function extraePrograma($programas, $id){
+                    foreach ($programas as $key=>$programa ) {
+                        if($programa->id == $id){
+                            return 'Yes';
+                        }
+                    }
+                    return 'No';
+                }
                 $sheet->row(1,['UniqueKey', 'FECHAVALORACION', 'MUNICIPIO', 'INSTITUCION', 'TIPODEINSTITUCION', 'SERVICIO', 'SEMANAEPI', 'TIPODEDOCUMENTO', 'NUMERODELDOCUMENTO', 'NOMBRE1', 'NOMBRE2', 'APELLIDO1', 'APELLIDO2', 'FECHANACIMIENTO', 'EDADMESES', 'EDADYEARS', 'TIPODEUSUARIO', 'TIPOAFILIACION', 'ENTIDAD', 'AREADERESIDANCIA', 'NOMBREDELBARRIOOLAVEREDA', 'DIRECCIONOINDICACIONES', 'NUMERODETELEFONO', 'PERTENENCIAETNICA', 'GRUPOINDIGENA', 'GRUPOPOBLACION', 'BENEFICIARIODEPROGRAMAS', 'DESAYUNOINFANTIL', 'CDI', 'RESTAURANTEESCOLAR', 'RECUPERACIONNUTRICIONAL', 'FAMILIASENACCION', 'MODALIDADFAMILIARICBF', 'REDUNIDOS', 'OTRO', 'PESOGES', 'TALLAGES', 'IMCGES', 'FUR', 'EDADGESTACIONAL', 'SUPLEMENTACION', 'HEMOGLOBINAgdl', 'CLASIFICAICONHB', 'DXNUTRIGESTANTE', 'SEXO', 'PESOKG', 'TALLACM', 'IMC', 'PERIMCEFALICO', 'HGMENORES18', 'CLASIFICACIONHGMENORES', 'LMEXCLUSIVA', 'LMACTUAL', 'ZPESOTALLAM5', 'FLAGPTM5', 'DXPTM5', 'ZTALLAEDADM5', 'FLAGTEM5', 'DXTEM5', 'ZPCEFEDADM5', 'FLAGPCEM5', 'DXPCEM5', 'ZPESOEDADM5', 'FLAGPEM5', 'DXPEM5', 'ZIMCEDADM5', 'FLAGIMCM5', 'DXIMCM5', 'ZIMCEDAD518', 'FLAGIMC518', 'DXIMC518', 'ZTALLAEDAD518', 'FLAGTE518', 'DXTE518', 'SEXOAD', 'PESOAD', 'TALLAAD', 'IMCAD', 'CIRCUNFCINTURAD', 'DXADULTOIMC', 'SUBCLAOBESIDAD', 'DXCCINTURADULTO']);
 
                 foreach ($consultas as $key=>$consulta ) {
                     $regis = $rowRegistros + $key;
-                    $sheet->row($regis,[$consulta->id, $consulta->fecha_consulta, $consulta->Persona->Barrio->Municipio->nombre, $upgd->razon_social, $upgd->TipoInstitucion->descripcion, $consulta->ServicioUpgd->Servicio->descripcion, $intSemana, $consulta->Persona->tipo_identificacion_id , $consulta->Persona->identificacion, $consulta->Persona->nombre1, $consulta->Persona->nombre2, $consulta->Persona->apellido1, $consulta->Persona->apellido2, $consulta->Persona->fecha_nacimiento, 'Edad mes', 'Edad anios', $consulta->Persona->RangoEdad->descripcion, $consulta->Persona->Regimen->nombre, $consulta->Persona->Ep->nombre, $consulta->Persona->TipoAreaResidencial->nombre, $consulta->Persona->Barrio->nombre, $consulta->Persona->direccion, $consulta->Persona->telefono, $consulta->Persona->GrupoEtnico->nombre, $consulta->Persona->subgrupo_etnico_id!=null? $consulta->Persona->SubgrupoEtnico->nombre:'', $consulta->Persona->GrupoPoblacional->nombre, $consulta->Persona->beneficiario, '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', $consulta->Persona->genero=='Masculino'?1:2, extraeValor($consulta->DetalleConsulta,1), extraeValor($consulta->DetalleConsulta,2), extraeIMC($consulta->DetalleConsulta), extraeValor($consulta->DetalleConsulta,3), extraeValor($consulta->DetalleConsulta,4), '', extraeValor($consulta->DetalleConsulta,6), extraeValor($consulta->DetalleConsulta,5)]);
+                    $sheet->row($regis,[$consulta->id, $consulta->fecha_consulta, $consulta->Persona->Barrio->Municipio->nombre, $upgd->razon_social, $upgd->TipoInstitucion->descripcion, $consulta->ServicioUpgd->Servicio->descripcion, $intSemana, $consulta->Persona->tipo_identificacion_id , $consulta->Persona->identificacion, $consulta->Persona->nombre1, $consulta->Persona->nombre2, $consulta->Persona->apellido1, $consulta->Persona->apellido2, $consulta->Persona->fecha_nacimiento, 'Edad mes', 'Edad anios', $consulta->Persona->RangoEdad->descripcion, $consulta->Persona->Regimen->nombre, $consulta->Persona->Ep->nombre, $consulta->Persona->TipoAreaResidencial->nombre, $consulta->Persona->Barrio->nombre, $consulta->Persona->direccion, $consulta->Persona->telefono, $consulta->Persona->GrupoEtnico->nombre, $consulta->Persona->subgrupo_etnico_id!=null? $consulta->Persona->SubgrupoEtnico->nombre:'', $consulta->Persona->GrupoPoblacional->nombre, $consulta->Persona->beneficiario, $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 1):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 5):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 2):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 6):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 3):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 7):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 4):'No', $consulta->Persona->ProgramaSocial != null?extraePrograma($consulta->Persona->ProgramaSocial, 8):'No', '', '', '', '', '', '', '', '', '', $consulta->Persona->genero=='Masculino'?1:2, extraeValor($consulta->DetalleConsulta,1), extraeValor($consulta->DetalleConsulta,2), extraeIMC($consulta->DetalleConsulta), extraeValor($consulta->DetalleConsulta,3), extraeValor($consulta->DetalleConsulta,4), extraeDiagnostico($consulta->DiagnosticoNutricional,1,'cn'), extraeValor($consulta->DetalleConsulta,6), extraeValor($consulta->DetalleConsulta,5), extraeDiagnostico($consulta->DiagnosticoNutricional,2,'zs'), extraeDiagnostico($consulta->DiagnosticoNutricional,2,'dv'), extraeDiagnostico($consulta->DiagnosticoNutricional,2,'cn'), extraeDiagnostico($consulta->DiagnosticoNutricional,3,'zs'), extraeDiagnostico($consulta->DiagnosticoNutricional,3,'dv'), extraeDiagnostico($consulta->DiagnosticoNutricional,3,'cn'), extraeDiagnostico($consulta->DiagnosticoNutricional,4,'zs'), extraeDiagnostico($consulta->DiagnosticoNutricional,4,'dv'), extraeDiagnostico($consulta->DiagnosticoNutricional,4,'cn'), extraeDiagnostico($consulta->DiagnosticoNutricional,5,'zs'), extraeDiagnostico($consulta->DiagnosticoNutricional,5,'dv'), extraeDiagnostico($consulta->DiagnosticoNutricional,5,'cn'), extraeDiagnostico($consulta->DiagnosticoNutricional,6,'zs'), extraeDiagnostico($consulta->DiagnosticoNutricional,6,'dv'), extraeDiagnostico($consulta->DiagnosticoNutricional,6,'cn')]);
                 }
             });
         })->export('xls');
@@ -160,10 +183,11 @@ class PacientesController extends Controller
     }
 
 
-    public function calcularEdad($fecha){
+    public function calcularEdad($fecha, $consulta){
         $arrayDate = explode("-", $fecha);
+        $arrayDateConsulta = explode("-", $consulta);
         $date = Carbon::createFromDate((int)$arrayDate[0], (int)$arrayDate[1], (int)$arrayDate[2], 'America/Bogota');
-        $ahora = Carbon::now('America/Bogota');
+        $ahora = Carbon::createFromDate((int)$arrayDateConsulta[0], (int)$arrayDateConsulta[1], (int)$arrayDateConsulta[2], 'America/Bogota');
         $años = ($date->diffInDays($ahora))/365;
         $semanas = ($date->diffInWeeks($ahora));
         $edad = new class{};
@@ -187,6 +211,7 @@ class PacientesController extends Controller
             $variables->genero=$request['edad']['genero'];
 
             $datos = new class{
+              var $tipo_diagnostico_id = '';
               var $zs = '';
               var $dv = '';
               var $cn = '';
@@ -217,6 +242,13 @@ class PacientesController extends Controller
             $clasificacion->pcedad = new $datos;
             $clasificacion->pesoedad = new $datos;
             $clasificacion->imcedad = new $datos;
+
+            $clasificacion->hg->tipo_diagnostico_id = 1;
+            $clasificacion->pesotalla->tipo_diagnostico_id = 2;
+            $clasificacion->tallaedad->tipo_diagnostico_id = 3;
+            $clasificacion->pcedad->tipo_diagnostico_id = 4;
+            $clasificacion->pesoedad->tipo_diagnostico_id = 5;
+            $clasificacion->imcedad->tipo_diagnostico_id = 6;
 
             switch ($request['edad']['rango_edad_id']){
                 case 1:{
@@ -364,6 +396,7 @@ class PacientesController extends Controller
 
     public function calcularZ($lmsDatos, $variables){
         $datos = new class{
+            var $tipo_diagnostico_id = '';
             var $zs = '';
             var $dv = '';
             var $cn = '';
@@ -377,6 +410,7 @@ class PacientesController extends Controller
 //            var_dump($datos->zs.' -- '.$lmsDatos->id_tipo_lms_datos);
             if($variables->edadMeses<60){
                 if($fz->id_tipo_lms_datos==4){
+                    $datos->tipo_diagnostico_id = 5;
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -402,6 +436,7 @@ class PacientesController extends Controller
                     }
                 }else
                     if($fz->id_tipo_lms_datos==1 || $fz->id_tipo_lms_datos==6){
+                        $datos->tipo_diagnostico_id = 2;
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -436,6 +471,7 @@ class PacientesController extends Controller
                     }
                 }else
                     if($fz->id_tipo_lms_datos==2){
+                        $datos->tipo_diagnostico_id = 3;
                     //DATOS VALIDOS
                     if($datos->zs >= 6){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -458,6 +494,7 @@ class PacientesController extends Controller
                     }
                 }else
                     if($fz->id_tipo_lms_datos==5){
+                        $datos->tipo_diagnostico_id = 6;
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -483,6 +520,7 @@ class PacientesController extends Controller
                     }
                 }else
                     if($fz->id_tipo_lms_datos==3){
+                        $datos->tipo_diagnostico_id = 4;
                     //DATOS VALIDOS
                     if($datos->zs >= 5){
                         $datos->dv = 'DATOS EXTREMOS ALTOS';
@@ -513,11 +551,14 @@ class PacientesController extends Controller
     {
         DB::beginTransaction();
         try {
-            $persona = Persona::find($request->id);
-            $persona->rango_edad_id = $this->calcularRangoEdad($request->fecha_nacimiento);
+            $request =  json_decode($request->getContent());
+//            var_dump($request->paciente->id);
+            $persona = Persona::find($request->paciente->id);
+            $ahora = $request->consulta->fecha_consulta?$request->consulta->fecha_consulta:Carbon::now('America/Bogota');
+            $persona->rango_edad_id = $this->calcularRangoEdad($request->paciente->fecha_nacimiento, $ahora);
             $persona->save();
             DB::commit();
-            $edad = $this->calcularEdad($request->fecha_nacimiento);
+            $edad = $this->calcularEdad($request->paciente->fecha_nacimiento, $ahora);
             $edad->rango_edad_id = $persona->rango_edad_id;
             $edad->genero = $persona->genero;
             return response()->json([
@@ -538,6 +579,7 @@ class PacientesController extends Controller
     {
         DB::beginTransaction();
         try {
+            $ahora = Carbon::now('America/Bogota');
             if ($request->id != '') {
                 $validador = Validator::make($request->all(), [
                     'tipo_identificacion_id' => 'required',
@@ -586,7 +628,7 @@ class PacientesController extends Controller
                 $persona->subgrupo_etnico_id = $request->subgrupo_etnico_id;
                 $persona->grupo_poblacional_id = $request->grupo_poblacional_id;
                 $persona->beneficiario = $request->beneficiario;
-                $persona->rango_edad_id = $this->calcularRangoEdad($request->fecha_nacimiento);
+                $persona->rango_edad_id = $this->calcularRangoEdad($request->fecha_nacimiento, $ahora);
                 $persona->ProgramaSocial()->detach();
                 $persona->ProgramaSocial()->attach($request->programa_social);
                 $persona->save();
@@ -643,7 +685,7 @@ class PacientesController extends Controller
                 $persona->subgrupo_etnico_id = $request->subgrupo_etnico_id;
                 $persona->grupo_poblacional_id = $request->grupo_poblacional_id;
                 $persona->beneficiario = $request->beneficiario;
-                $persona->rango_edad_id = $this->calcularRangoEdad($request->fecha_nacimiento);
+                $persona->rango_edad_id = $this->calcularRangoEdad($request->fecha_nacimiento, $ahora);
                 $persona->estado = 'Activo';
                 $persona->ProgramaSocial()->attach($request->programa_social);
                 $persona->save();
@@ -668,6 +710,7 @@ class PacientesController extends Controller
     {
         DB::beginTransaction();
         try {
+//            var_dump($request['clasificacion']);
             if ($request['paciente']['id'] != '') {
                 $persona = Persona::find($request['paciente']['id']);
                 $persona->tipo_identificacion_id = $request['paciente']['tipo_identificacion_id'];
@@ -688,17 +731,28 @@ class PacientesController extends Controller
                 $persona->subgrupo_etnico_id = $request['paciente']['subgrupo_etnico_id'];
                 $persona->grupo_poblacional_id = $request['paciente']['grupo_poblacional_id'];
                 $persona->beneficiario = $request['paciente']['beneficiario'];
-                $persona->rango_edad_id = $this->calcularRangoEdad($request['paciente']['fecha_nacimiento']);
+                $ahora = $request['consulta']['fecha_consulta']?$request['consulta']['fecha_consulta']:Carbon::now('America/Bogota');
+                $persona->rango_edad_id = $this->calcularRangoEdad($request['paciente']['fecha_nacimiento'],$ahora);
 
                 $persona->ProgramaSocial()->detach();
                 $persona->ProgramaSocial()->attach($request['paciente']['programa_social']);
                 $persona->save();
+
+                $oldConsultas = Consulta::where('persona_id','=',$persona->id, 'and')
+                ->where('activa','=',1)
+                ->get();
+
+                foreach ($oldConsultas as $key=>$oldConsulta ) {
+                    $oldConsulta->activa = 0;
+                    $oldConsulta->save();
+                }
 
                 $consulta = new Consulta();
                 $consulta->servicio_upgd_id = $request['consulta']['servicio_upgd_id'];
                 $consulta->fecha_consulta = $request['consulta']['fecha_consulta'];
                 $consulta->persona_id = $persona->id;
                 $consulta->gestante = 0;
+                $consulta->activa = 1;
                 $consulta->user_id = Auth::user()->id;
                 $consulta->save();
 
@@ -708,6 +762,20 @@ class PacientesController extends Controller
                     $detalleconsulta->rango_edad_variable_id = $detalle['rango_edad_variable_id'];
                     $detalleconsulta->valor = $detalle['valor'];
                     $detalleconsulta->save();
+                }
+
+                foreach ($request['clasificacion'] as $key=>$clasificacion ) {
+                    if($key!='imc'){
+//                        var_dump($clasificacion);
+                        $diagnostico = new DiagnosticoNutricional();
+                        $diagnostico->consulta_id = $consulta->id;
+                        $diagnostico->tipo_diagnostico_id = $clasificacion['tipo_diagnostico_id'];
+                        $diagnostico->zs = $clasificacion['zs'];
+                        $diagnostico->dv = $clasificacion['dv'];
+                        $diagnostico->cn = $clasificacion['cn'];
+                        $diagnostico->clase = $clasificacion['clase'];
+                        $diagnostico->save();
+                    }
                 }
 
                 DB::commit();
